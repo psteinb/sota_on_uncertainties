@@ -22,7 +22,7 @@ rule imagenette_folds:
                fid=range(KFOLDS),
                category="train val".split(' ')
                )
-        
+
 rule imagenette_all:
     input: expand(DATAROOT / "imagenette2-320-all/{dir}",dir=IMGNSTEMS)
 
@@ -39,11 +39,6 @@ rule imagenette_combine:
            DATAROOT / "{dataset}" /"train"/"{classdir}"
     output: directory(DATAROOT / "{dataset}-all/{classdir}")
     shell: "mkdir -p {output[0]} && cp -vur {input[0]}/*JPEG {input[1]}/*JPEG {output[0]}"
-
-# rule splits_dir:
-#     input: DATAROOT / "{dataset}-all"
-#     output: directory(DATAROOT / "{dataset}-splits")
-#     shell: "mkdir -p {output}"
 
 rule create_tables:
     input: DATAROOT / "{dataset}-all"
@@ -62,3 +57,26 @@ rule fill_fold:
     script:
         "scripts/linkin.py"
 
+rule imagenette2_resnet50_default:
+    input: DATAROOT/"imagenette2-320-splits"/"{foldstem}"
+    output: directory("outputs/resnet50/{foldstem}/after80"), "outputs/resnet50/{foldstem}/after80/last.pth.tar"
+    log: "outputs/resnet50/{foldstem}/run.log"
+    shell: "python timm-0.5.4-train.py {input} --model resnet50 --num-classes=10 --output {output[0]} --checkpoint-hist 2 --epochs 80 --experiment after80 > {log} 2>&1"
+
+rule imagenette2_resnext50_default:
+    input: DATAROOT/"imagenette2-320-splits"/"{foldstem}"
+    output: directory("outputs/resnext50/{foldstem}/after80"), "outputs/resnext50/{foldstem}/after80/last.pth.tar"
+    log: "outputs/resnext50/{foldstem}/run.log"
+    shell: "python timm-0.5.4-train.py {input} --num-classes=10 --output {output[0]} --experiment after80 --model resnext50_32x4d --checkpoint-hist 2 --lr 0.6 --warmup-epochs 5 --epochs 80 --weight-decay 1e-4 --sched cosine --reprob 0.4 --recount 3 --remode pixel --aa rand-m7-mstd0.5-inc1 -b 192 -j 6 --amp --dist-bn reduce > {log} 2>&1"
+
+rule imagenette2_vit_small_default:
+    input: DATAROOT/"imagenette2-320-splits"/"{foldstem}"
+    output: directory("outputs/vit_small/{foldstem}/after80"), "outputs/vit_small/{foldstem}/after80/last.pth.tar"
+    log: "outputs/vit_small/{foldstem}/run.log"
+    shell: "python timm-0.5.4-train.py {input} --model vit_small_patch32_224 --num-classes=10 --output {output[0]} --checkpoint-hist 2 --epochs 80 --experiment after80 --mean 0.485 0.456 0.406 --std 0.229 0.224 0.225 > {log} 2>&1"
+
+rule imagenette2_train:
+    input:
+        expand("outputs/{arch}/fold-{fid:02.0f}/after80/last.pth.tar",
+               arch="resnext50,resnet50,vit_small".split(','),
+               fid=range(KFOLDS))
