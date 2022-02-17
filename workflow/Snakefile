@@ -1,3 +1,7 @@
+from pathlib import Path
+
+KFOLDS=20
+DATAROOT = Path("/p/scratch/atmlaml/steinbach1/sota_on_uncertainties/data/")
 IMGNSTEMS=[
 "n01440764",
 "n02102040",
@@ -11,19 +15,50 @@ IMGNSTEMS=[
 "n03888257"
     ]
 
-
+    
+rule imagenette_folds:
+    input:
+        expand(DATAROOT / "imagenette2-320-splits"/"fold-{fid:02.0f}/{category}",
+               fid=range(KFOLDS),
+               category="train val".split(' ')
+               )
+        
 rule imagenette_all:
-    input: expand("data/imagenette2-320-all/{classdir}",classdir=IMGNSTEMS)
+    input: expand(DATAROOT / "imagenette2-320-all/{dir}",dir=IMGNSTEMS)
 
 rule imagenette_unpack:
     input: "imagenette2-320.tgz"
-    output: rootdir=directory("data"),
-            tocheck1="data/imagenette2-320/val/n02979186/n02979186_7492.JPEG",
-            tocheck2="data/imagenette2-320/noisy_imagenette.csv"
+    output: rootdir=directory(DATAROOT / "data"),
+            tocheck1=DATAROOT / "imagenette2-320/val/n02979186/n02979186_7492.JPEG",
+            tocheck2=DATAROOT / "imagenette2-320/noisy_imagenette.csv"
     shell: "cd {output.rootdir} && tar xf ../{input}"
 
+
 rule imagenette_combine:
-    input: "data/imagenette2-320/val/{classdir}", "data/imagenette2-320/train/{classdir}"
-    output: directory("data/imagenette2-320-all/{classdir}")
-    shell: "mkdir {output} && cp -ur {input[0]}/*JPEG {input[1]}/*JPEG {output}"
+    input: DATAROOT / "{dataset}" /"val"/"{classdir}",
+           DATAROOT / "{dataset}" /"train"/"{classdir}"
+    output: directory(DATAROOT / "{dataset}-all/{classdir}")
+    shell: "mkdir -p {output[0]} && cp -vur {input[0]}/*JPEG {input[1]}/*JPEG {output[0]}"
+
+# rule splits_dir:
+#     input: DATAROOT / "{dataset}-all"
+#     output: directory(DATAROOT / "{dataset}-splits")
+#     shell: "mkdir -p {output}"
+
+rule create_tables:
+    input: DATAROOT / "{dataset}-all"
+    output: expand(DATAROOT / "{{dataset}}-splits"/"fold-{fid:02.0f}.table", fid=range(KFOLDS))
+    script:
+        "scripts/kfold.py"
+
+rule imagenette_tables:
+    input: expand(DATAROOT / "imagenette2-320-splits"/"fold-{fid:02.0f}.table", fid=range(KFOLDS))
+
+rule fill_fold:
+    input: DATAROOT / "{dataset}-splits"/"fold-{foldid}.table"
+    output: directory(DATAROOT / "{dataset}-splits"/"fold-{foldid}"),
+            directory(DATAROOT / "{dataset}-splits"/"fold-{foldid}/train"),
+            directory(DATAROOT / "{dataset}-splits"/"fold-{foldid}/val")
+    script:
+        "scripts/linkin.py"
 
