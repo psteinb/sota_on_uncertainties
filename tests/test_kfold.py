@@ -85,6 +85,10 @@ def test_write_tables(tmpdir):
     for rf in rvalue:
         assert Path(rf) in tfiles, f"{rf} not in tfiles"
 
+    for tf in tfiles:
+        content = Path(tf).read_text().split("\n")
+        assert len(content) == 4
+
     contents = opath.glob("*")
     [c.unlink() for c in contents]
     opath.rmdir()

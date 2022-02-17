@@ -38,23 +38,23 @@ def write_tables(inpath, outputdir=".", kfolds=20, seed=42):
 
         y_train, y_test = y[train_index], y[test_index]
         # create from-to filelist
-        folddir = opath / f"fold-{foldcnt:02.0f}"
-        foldtable = opath / f"fold-{foldcnt:02.0f}.table"
-        ofile = open(foldtable, "w")
-        for item in X_train:
-            index = item[0]
+        foldstem = f"fold-{foldcnt:02.0f}"
+        folddir = Path(outputdir) / foldstem
+        foldtable = Path(outputdir) / f"{foldstem}.table"
+
+        lines = []
+
+        for index in X_train[:, 0]:
             src = candidatefiles[index]
             dst = folddir / "train" / src.parts[-2] / src.parts[-1]
-            ofile.write(f"{src} {dst}\n")
+            lines.append(f"{src} {dst}")
 
-        for item in X_test:
-            index = item[0]
+        for index in X_test[:, 0]:
             src = candidatefiles[index]
             dst = folddir / "val" / src.parts[-2] / src.parts[-1]
-            ofile.write(f"{src} {dst}\n")
+            lines.append(f"{src} {dst}")
 
-        ofile.flush()
-        ofile.close()
+        foldtable.write_text("\n".join(lines))
         written.append(str(foldtable))
         foldcnt += 1
 
@@ -72,4 +72,22 @@ def main(inpath, outputdir=".", kfolds=20, seed=42):
 
 
 if __name__ == "__main__":
-    main()
+    if "snakemake" in globals() and (
+        hasattr(snakemake, "input") and hasattr(snakemake, "output")
+    ):
+        opath = Path(snakemake.output[0])
+        # ifclause is workaround for snakemake
+        if ".table" == opath.suffix:
+            value = main(snakemake.input[0], opath.parent)
+        else:
+            value = main(snakemake.input[0], opath)
+        sys.exit(value)
+    else:
+        inpath = sys.argv[1] if len(sys.argv) > 1 else None
+        outpath = sys.argv[2] if len(sys.argv) > 2 else "."
+        kfolds = int(sys.argv[3]) if len(sys.argv) > 3 else 20
+        seed = int(sys.argv[4]) if len(sys.argv) > 4 else 42
+
+        value = main(inpath, outpath, kfolds, seed)
+
+    sys.exit(value)
