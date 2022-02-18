@@ -4,3 +4,8 @@ cluster: "sbatch --time={resources.time_min} --mem={resources.mem_mb}
 jobs: 64
 default-resources: [cpus=1, mem_mb=30000, time_min=75, ngpu=1]
 resources: [cpus=100, mem_mb=800000]
+set-resources:
+  - imagenette2_inference_last:time_min=5
+  - imagenette2_resnext50_inference_last:time_min=5
+  - imagenette2_resnet50_inference_last:time_min=5
+  - imagenette2_vit_small_inference_last:time_min=5
