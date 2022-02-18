@@ -2,5 +2,5 @@ cluster: "sbatch --time={resources.time_min} --mem={resources.mem_mb}
           -c {resources.cpus} -p gpus -A atmlaml 
           -o outputs/slurm/logs/{rule}_%j.out -e outputs/slurm/logs/{rule}_%j.err -J {rule}"
 jobs: 64
-default-resources: [cpus=1, mem_mb=30000, time_min=200, ngpu=1]
+default-resources: [cpus=1, mem_mb=30000, time_min=75, ngpu=1]
 resources: [cpus=100, mem_mb=800000]

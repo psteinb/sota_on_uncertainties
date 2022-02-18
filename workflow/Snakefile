@@ -1,6 +1,7 @@
 from pathlib import Path
 
 KFOLDS=20
+NSEEDS=5
 DATAROOT = Path("/p/scratch/atmlaml/steinbach1/sota_on_uncertainties/data/")
 IMGNSTEMS=[
 "n01440764",
@@ -59,33 +60,33 @@ rule fill_fold:
 
 rule imagenette2_resnet50_default:
     input: DATAROOT/"imagenette2-320-splits"/"{foldstem}"
-    output: directory("outputs/resnet50/seed42/{foldstem}/"), "outputs/resnet50/seed42/{foldstem}/after80/last.pth.tar"
-    log: "outputs/resnet50/seed42/{foldstem}.log"
-    shell: "python timm-0.5.4-train.py {input} --model resnet50 --num-classes=10 --output {output[0]} --checkpoint-hist 2 --epochs 80 --experiment after80 > {log} 2>&1"
+    output: directory("outputs/resnet50/seed{seedval}/{foldstem}/"), "outputs/resnet50/seed{seedval}/{foldstem}/after80/last.pth.tar"
+    log: "outputs/resnet50/seed{seedval}/{foldstem}.log"
+    shell: "time python timm-0.5.4-train.py {input} --seed {wildcards.seedval} --model resnet50 --num-classes=10 --output {output[0]} --checkpoint-hist 2 --epochs 80 --experiment after80 > {log} 2>&1"
 
 rule imagenette2_resnext50_default:
     input: DATAROOT/"imagenette2-320-splits"/"{foldstem}"
-    output: directory("outputs/resnext50/seed42/{foldstem}/"), "outputs/resnext50/seed42/{foldstem}/after80/last.pth.tar"
-    log: "outputs/resnext50/seed42/{foldstem}.log"
-    shell: "python timm-0.5.4-train.py {input} --num-classes=10 --output {output[0]} --experiment after80 --model resnext50_32x4d --checkpoint-hist 2 --lr 0.6 --warmup-epochs 5 --epochs 80 --weight-decay 1e-4 --sched cosine --reprob 0.4 --recount 3 --remode pixel --aa rand-m7-mstd0.5-inc1 -b 192 -j 6 --amp --dist-bn reduce > {log} 2>&1"
+    output: directory("outputs/resnext50/seed{seedval}/{foldstem}/"), "outputs/resnext50/seed{seedval}/{foldstem}/after80/last.pth.tar"
+    log: "outputs/resnext50/seed{seedval}/{foldstem}.log"
+    shell: "time python timm-0.5.4-train.py {input} --seed {wildcards.seedval} --num-classes=10 --output {output[0]} --experiment after80 --model resnext50_32x4d --checkpoint-hist 2 --lr 0.6 --warmup-epochs 5 --epochs 80 --weight-decay 1e-4 --sched cosine --reprob 0.4 --recount 3 --remode pixel --aa rand-m7-mstd0.5-inc1 -b 192 -j 6 --amp --dist-bn reduce > {log} 2>&1"
 
 rule imagenette2_vit_small_default:
     input: DATAROOT/"imagenette2-320-splits"/"{foldstem}"
-    output: directory("outputs/vit_small/seed42/{foldstem}/"), "outputs/vit_small/seed42/{foldstem}/after80/last.pth.tar"
-    log: "outputs/vit_small/seed42/{foldstem}.log"
-    shell: "python timm-0.5.4-train.py {input} --model vit_small_patch32_224 --num-classes=10 --output {output[0]} --checkpoint-hist 2 --epochs 80 --experiment after80 --mean 0.485 0.456 0.406 --std 0.229 0.224 0.225 -b 96 > {log} 2>&1"
+    output: directory("outputs/vit_small/seed{seedval}/{foldstem}/"), "outputs/vit_small/seed{seedval}/{foldstem}/after80/last.pth.tar"
+    log: "outputs/vit_small/seed{seedval}/{foldstem}.log"
+    shell: "time python timm-0.5.4-train.py {input} --seed {wildcards.seedval} --model vit_small_patch32_224 --num-classes=10 --output {output[0]} --checkpoint-hist 2 --epochs 80 --experiment after80 --mean 0.485 0.456 0.406 --std 0.229 0.224 0.225 -b 96 > {log} 2>&1"
 
-rule imagenette2_train_all:
+rule imagenette2_train:
     input:
         expand("outputs/{arch}/seed42/fold-{fid:02.0f}/after80/last.pth.tar",
                arch="resnext50,resnet50,vit_small".split(','),
                fid=range(KFOLDS)),
         expand("outputs/{arch}/seed{seedval:02.0f}/fold-{fid:02.0f}/after80/last.pth.tar",
                arch="resnext50,resnet50,vit_small".split(','),
-               seedval=range(1328,1328+KFOLDS),
+               seedval=range(1328,1328+NSEEDS),
                fid=range(KFOLDS))
 
-rule imagenette2_train:
+rule imagenette2_train_default:
     input:
         expand("outputs/{arch}/seed42/fold-{fid:02.0f}/after80/last.pth.tar",
                arch="resnext50,resnet50,vit_small".split(','),
@@ -95,5 +96,5 @@ rule imagenette2_train_varseed:
     input:
         expand("outputs/{arch}/seed{seedval:02.0f}/fold-{fid:02.0f}/after80/last.pth.tar",
                arch="resnext50,resnet50,vit_small".split(','),
-               seedval=range(1328,1328+KFOLDS),
+               seedval=range(1328,1328+NSEEDS),
                fid=range(KFOLDS))
