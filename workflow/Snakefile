@@ -101,21 +101,22 @@ rule imagenette2_train_varseed:
 
 rule imagenette2_vit_small_inference_last:
     input: "outputs/vit_small/seed{seedval}/{foldstem}/after80/last.pth.tar"
-    output: directory("results/vit_small/seed{seedval}/{foldstem}/after80/"), "results/vit_small/seed{seedval}/{foldstem}/after80/topk_ids.csv"
+    output: directory("results/vit_small/seed{seedval}/{foldstem}/after80/"),
+            "results/vit_small/seed{seedval}/{foldstem}/after80/topk_ids.csv"
     log: "results/vit_small/seed{seedval}/{foldstem}/after80/topk_ids.log"
-    shell: "python timm-0.5.4-inference.py data/imagenette2-320-splits/{wildcards.foldstem}/val --checkpoint {input} --input-size 3 224 224 --num-classes 10 --output_dir {output} --model vit_small_patch32_224 > {log} 2>&1"
+    shell: "python timm-0.5.4-inference.py data/imagenette2-320-splits/{wildcards.foldstem}/val --checkpoint {input} --input-size 3 224 224 --num-classes 10 --output_dir {output[0]} --model vit_small_patch32_224 > {log} 2>&1"
 
 rule imagenette2_resnet50_inference_last:
     input: "outputs/resnet50/seed{seedval}/{foldstem}/after80/last.pth.tar"
     output: directory("results/resnet50/seed{seedval}/{foldstem}/after80/"), "results/resnet50/seed{seedval}/{foldstem}/after80/topk_ids.csv"
     log: "results/resnet50/seed{seedval}/{foldstem}/after80/topk_ids.log"
-    shell: "python timm-0.5.4-inference.py data/imagenette2-320-splits/{wildcards.foldstem}/val --checkpoint {input} --input-size 3 224 224 --num-classes 10 --output_dir {output} --model resnet50 > {log} 2>&1"
+    shell: "python timm-0.5.4-inference.py data/imagenette2-320-splits/{wildcards.foldstem}/val --checkpoint {input} --input-size 3 224 224 --num-classes 10 --output_dir {output[0]} --model resnet50 > {log} 2>&1"
 
 rule imagenette2_resnext50_inference_last:
     input: "outputs/resnext50/seed{seedval}/{foldstem}/after80/last.pth.tar"
     output: directory("results/resnext50/seed{seedval}/{foldstem}/after80/"), "results/resnext50/seed{seedval}/{foldstem}/after80/topk_ids.csv"
     log: "results/resnext50/seed{seedval}/{foldstem}/after80/topk_ids.log"
-    shell: "python timm-0.5.4-inference.py data/imagenette2-320-splits/{wildcards.foldstem}/val --checkpoint {input} --input-size 3 224 224 --num-classes 10 --output_dir {output} --model resnext50_32x4d > {log} 2>&1"
+    shell: "python timm-0.5.4-inference.py data/imagenette2-320-splits/{wildcards.foldstem}/val --checkpoint {input} --input-size 3 224 224 --num-classes 10 --output_dir {output[0]} --model resnext50_32x4d > {log} 2>&1"
 
 rule imagenette2_inference_last:
     input:
