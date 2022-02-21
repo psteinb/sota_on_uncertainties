@@ -15,6 +15,7 @@ import torch
 from timm.models import create_model, apply_test_time_pool
 from timm.data import ImageDataset, create_loader, resolve_data_config
 from timm.utils import AverageMeter, setup_default_logging
+from timm.utils import accuracy
 
 torch.backends.cudnn.benchmark = True
 _logger = logging.getLogger("inference")
@@ -174,11 +175,17 @@ def main():
     end = time.time()
     topk_ids = []
     gt_ids = []
+    outputs = []
+    targets = []
 
     with torch.no_grad():
         for batch_idx, (input, gtlabel) in enumerate(loader):
             input = input.cuda()
             labels = model(input)
+
+            outputs.append(labels.cpu().clone())
+            targets.append(torch.unsqueeze(gtlabel, dim=-1).cpu().clone())
+
             topk = labels.topk(k)[1]
 
             topk_ids.append(topk.cpu().numpy())
@@ -196,6 +203,11 @@ def main():
                 )
 
     topk_ids = np.concatenate(topk_ids, axis=0)
+    outputs_ = torch.row_stack(outputs)
+    targets_ = torch.row_stack(targets)
+
+    acc = accuracy(outputs_, targets_, topk=(1, 5))
+    _logger.info(f"accuracy obtained: {[item / 100. for item in acc]}")
 
     with open(os.path.join(args.output_dir, "./topk_ids.csv"), "w") as out_file:
         filenames = loader.dataset.filenames(basename=True)
@@ -218,6 +230,8 @@ def main():
             line += ",".join([str(v) for v in label])
             line += "\n"
             out_file.write(line)
+
+    _logger.info(f"Wrote {args.output_dir}/topk_ids.csv")
 
 
 if __name__ == "__main__":
