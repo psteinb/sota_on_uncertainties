@@ -127,3 +127,8 @@ rule imagenette2_resnext50_inference_last:
     log: "results/resnext50/seed{seedval}/{foldstem}/after80-topk_ids.log"
     shell: "python timm-0.5.4-inference.py data/imagenette2-320-splits/{wildcards.foldstem}/val --checkpoint {input} --input-size 3 224 224 --num-classes 10 --output_dir {output[0]} --model resnext50_32x4d --with-csv-header --mean 0.485 0.456 0.406 --std 0.229 0.224 0.225 > {log} 2>&1"
 
+rule imagenette2_inference_summarize:
+    input: "results/{arch}/seed{seedval}/fold-{foldid}/after{nepochs}/topk_ids.csv"
+    output: "results/{arch}_seed{seedval}_fold-{foldid}_after{nepochs}_summary.csv"
+    script:
+        "scripts/metrics.py"

@@ -5,6 +5,7 @@ import numpy as np
 from sklearn.metrics import accuracy_score
 from timm.utils import accuracy
 import torch
+from scripts.metrics import compute_metric
 
 TESTFOLDER = Path(__file__).parent
 CSVPATH = Path(TESTFOLDER.absolute()) / "accuracies_input.csv"
@@ -60,3 +61,14 @@ def test_sklearn_accuracy(idf):
     assert acc_ > 0.1
     assert acc_ < 0.5
     assert acc > acc_
+
+
+def test_metrics(testcsv):
+
+    acc, nrows = compute_metric(testcsv)
+
+    assert acc > 0
+    assert acc > 0.5
+    assert acc < 0.8
+    assert acc > 0.7
+    assert np.allclose(acc, 0.7284, atol=1e-3)
