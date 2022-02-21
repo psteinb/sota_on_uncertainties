@@ -102,6 +102,15 @@ parser.add_argument(
 parser.add_argument(
     "--pretrained", dest="pretrained", action="store_true", help="use pre-trained model"
 )
+
+parser.add_argument(
+    "--with-csv-header",
+    dest="with_csv_header",
+    action="store_true",
+    default=False,
+    help="include column names in output csv, not top0 to topk is included, where top0 is the predicted value",
+)
+
 parser.add_argument("--num-gpu", type=int, default=1, help="Number of GPUS to use")
 parser.add_argument(
     "--no-test-pool",
@@ -171,8 +180,9 @@ def main():
             input = input.cuda()
             labels = model(input)
             topk = labels.topk(k)[1]
+
             topk_ids.append(topk.cpu().numpy())
-            gt_ids.append(gtlabel.cpu().numpy())
+            gt_ids.extend(gtlabel.cpu().numpy())
 
             # measure elapsed time
             batch_time.update(time.time() - end)
@@ -189,16 +199,22 @@ def main():
 
     with open(os.path.join(args.output_dir, "./topk_ids.csv"), "w") as out_file:
         filenames = loader.dataset.filenames(basename=True)
-        header = "filename,gtlabel,"
-        header += ",".join([f"topk{v}" for v in range(int(args.num_classes))])
-        header += "\n"
 
-        out_file.write(header)
+        if args.with_csv_header:
+            header = "filename,gtlabel,"
+            header += ",".join([f"topk{v}" for v in range(int(args.num_classes))])
+            header += "\n"
+            out_file.write(header)
 
+        assert (
+            len(filenames) == len(gt_ids) == len(topk_ids)
+        ), f"{len(filenames)} != {len(gt_ids)} != {len(topk_ids)}"
         for filename, gt, label in zip(filenames, gt_ids, topk_ids):
+
             line = filename
             line += ","
-            line += gt
+            line += str(gt)
+            line += ","
             line += ",".join([str(v) for v in label])
             line += "\n"
             out_file.write(line)
