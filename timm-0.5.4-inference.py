@@ -24,11 +24,15 @@ _logger = logging.getLogger("inference")
 parser = argparse.ArgumentParser(description="PyTorch ImageNet Inference")
 parser.add_argument("data", metavar="DIR", help="path to dataset")
 parser.add_argument(
-    "--output_dir", metavar="DIR", default="./", help="path to output files"
+    "-o",
+    "--outputcsv",
+    metavar="DIR",
+    default="./topk_ids.csv",
+    help="path to output files",
 )
 parser.add_argument(
-    "--model",
     "-m",
+    "--model",
     metavar="MODEL",
     default="dpn92",
     help="model architecture (default: dpn92)",
@@ -209,7 +213,7 @@ def main():
     acc = accuracy(outputs_, targets_, topk=(1, 5))
     _logger.info(f"accuracy obtained: {[item / 100. for item in acc]}")
 
-    with open(os.path.join(args.output_dir, "./topk_ids.csv"), "w") as out_file:
+    with open(os.path.join(args.outputcsv), "w") as out_file:
         filenames = loader.dataset.filenames(basename=True)
 
         if args.with_csv_header:
@@ -231,7 +235,7 @@ def main():
             line += "\n"
             out_file.write(line)
 
-    _logger.info(f"Wrote {args.output_dir}/topk_ids.csv")
+    _logger.info(f"Wrote {args.outputcsv}")
 
 
 if __name__ == "__main__":
