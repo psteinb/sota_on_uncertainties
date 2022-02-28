@@ -13,8 +13,7 @@ $ srun --cpu_bind=none --pty /bin/bash -i
 Setup the software environment:
 
 ```
-$ ml add Stages/2020 GCCcore/.10.3.0
-$ ml add CUDA/11.3 Python/3.8.5
+$ ml add Stages/2020 GCCcore/.10.3.0 CUDA/11.3 Python/3.8.5
 ```
 This will setup the environment to:
 ```
