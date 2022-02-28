@@ -16,12 +16,34 @@ IMGNSTEMS=[
 "n03888257"
     ]
 
+rule imagenette2_inference:
+    input:
+        expand("results/{arch}/seed42/fold-{fid:02.0f}/after80/{chkpt}_topk_ids.csv",
+               arch="resnext50,resnet50,vit_small".split(','),
+               fid=range(KFOLDS),
+               chkpt=["last","best"]),
+        expand("results/{arch}/seed{seedval:02.0f}/fold-{fid:02.0f}/after80/{chkpt}_topk_ids.csv",
+               arch="resnext50,resnet50,vit_small".split(','),
+               seedval=range(1328,1328+NSEEDS),
+               fid=range(KFOLDS),
+               chkpt=["last","best"])
+
 rule imagenette2_inference_last:
     input:
-        expand("results/{arch}/seed42/fold-{fid:02.0f}/after80/topk_ids.csv",
+        expand("results/{arch}/seed42/fold-{fid:02.0f}/after80/last_topk_ids.csv",
                arch="resnext50,resnet50,vit_small".split(','),
                fid=range(KFOLDS)),
-        expand("results/{arch}/seed{seedval:02.0f}/fold-{fid:02.0f}/after80/topk_ids.csv",
+        expand("results/{arch}/seed{seedval:02.0f}/fold-{fid:02.0f}/after80/last_topk_ids.csv",
+               arch="resnext50,resnet50,vit_small".split(','),
+               seedval=range(1328,1328+NSEEDS),
+               fid=range(KFOLDS))
+
+rule imagenette2_inference_best:
+    input:
+        expand("results/{arch}/seed42/fold-{fid:02.0f}/after80/best_topk_ids.csv",
+               arch="resnext50,resnet50,vit_small".split(','),
+               fid=range(KFOLDS)),
+        expand("results/{arch}/seed{seedval:02.0f}/fold-{fid:02.0f}/after80/best_topk_ids.csv",
                arch="resnext50,resnet50,vit_small".split(','),
                seedval=range(1328,1328+NSEEDS),
                fid=range(KFOLDS))
@@ -69,19 +91,25 @@ rule fill_fold:
 
 rule imagenette2_resnet50_default:
     input: DATAROOT/"imagenette2-320-splits"/"{foldstem}"
-    output: directory("outputs/resnet50/seed{seedval}/{foldstem}/"), "outputs/resnet50/seed{seedval}/{foldstem}/after80/last.pth.tar"
+    output: directory("outputs/resnet50/seed{seedval}/{foldstem}/"),
+            "outputs/resnet50/seed{seedval}/{foldstem}/after80/last.pth.tar",
+            "outputs/resnet50/seed{seedval}/{foldstem}/after80/model_best.pth.tar"
     log: "outputs/resnet50/seed{seedval}/{foldstem}.log"
     shell: "time python timm-0.5.4-train.py {input} --seed {wildcards.seedval} --model resnet50 --num-classes=10 --output {output[0]} --checkpoint-hist 2 --epochs 80 --experiment after80 > {log} 2>&1"
 
 rule imagenette2_resnext50_default:
     input: DATAROOT/"imagenette2-320-splits"/"{foldstem}"
-    output: directory("outputs/resnext50/seed{seedval}/{foldstem}/"), "outputs/resnext50/seed{seedval}/{foldstem}/after80/last.pth.tar"
+    output: directory("outputs/resnext50/seed{seedval}/{foldstem}/"),
+            "outputs/resnext50/seed{seedval}/{foldstem}/after80/last.pth.tar",
+            "outputs/resnext50/seed{seedval}/{foldstem}/after80/model_best.pth.tar"
     log: "outputs/resnext50/seed{seedval}/{foldstem}.log"
     shell: "time python timm-0.5.4-train.py {input} --seed {wildcards.seedval} --num-classes=10 --output {output[0]} --experiment after80 --model resnext50_32x4d --checkpoint-hist 2 --lr 0.6 --warmup-epochs 5 --epochs 80 --weight-decay 1e-4 --sched cosine --reprob 0.4 --recount 3 --remode pixel --aa rand-m7-mstd0.5-inc1 -b 192 -j 6 --amp --dist-bn reduce > {log} 2>&1"
 
 rule imagenette2_vit_small_default:
     input: DATAROOT/"imagenette2-320-splits"/"{foldstem}"
-    output: directory("outputs/vit_small/seed{seedval}/{foldstem}/"), "outputs/vit_small/seed{seedval}/{foldstem}/after80/last.pth.tar"
+    output: directory("outputs/vit_small/seed{seedval}/{foldstem}/"),
+            "outputs/vit_small/seed{seedval}/{foldstem}/after80/last.pth.tar",
+            "outputs/vit_small/seed{seedval}/{foldstem}/after80/model_best.pth.tar"
     log: "outputs/vit_small/seed{seedval}/{foldstem}.log"
     shell: "time python timm-0.5.4-train.py {input} --seed {wildcards.seedval} --model vit_small_patch32_224 --num-classes=10 --output {output[0]} --checkpoint-hist 2 --epochs 80 --experiment after80 --mean 0.485 0.456 0.406 --std 0.229 0.224 0.225 -b 96 > {log} 2>&1"
 
@@ -108,27 +136,50 @@ rule imagenette2_train_varseed:
                seedval=range(1328,1328+NSEEDS),
                fid=range(KFOLDS))
 
+rule imagenette2_vit_small_inference_best:
+    input: "outputs/vit_small/seed{seedval}/{foldstem}/after80/model_best.pth.tar"
+    output: "results/vit_small/seed{seedval}/{foldstem}/after80/best_topk_ids.csv"
+    log: "results/vit_small/seed{seedval}/{foldstem}/after80-best_topk_ids.log"
+    shell: "python timm-0.5.4-inference.py data/imagenette2-320-splits/{wildcards.foldstem}/val --checkpoint {input} --input-size 3 224 224 --num-classes 10 -o {output} --model vit_small_patch32_224 --with-csv-header --mean 0.485 0.456 0.406 --std 0.229 0.224 0.225 > {log} 2>&1"
+
+rule imagenette2_resnet50_inference_best:
+    input: "outputs/resnet50/seed{seedval}/{foldstem}/after80/model_best.pth.tar"
+    output: "results/resnet50/seed{seedval}/{foldstem}/after80/best_topk_ids.csv"
+    log: "results/resnet50/seed{seedval}/{foldstem}/after80-best_topk_ids.log"
+    shell: "python timm-0.5.4-inference.py data/imagenette2-320-splits/{wildcards.foldstem}/val --checkpoint {input} --input-size 3 224 224 --num-classes 10 -o {output} --model resnet50 --with-csv-header --mean 0.485 0.456 0.406 --std 0.229 0.224 0.225 > {log} 2>&1"
+
+rule imagenette2_resnext50_inference_best:
+    input: "outputs/resnext50/seed{seedval}/{foldstem}/after80/model_best.pth.tar"
+    output: "results/resnext50/seed{seedval}/{foldstem}/after80/best_topk_ids.csv"
+    log: "results/resnext50/seed{seedval}/{foldstem}/after80-best_topk_ids.log"
+    shell: "python timm-0.5.4-inference.py data/imagenette2-320-splits/{wildcards.foldstem}/val --checkpoint {input} --input-size 3 224 224 --num-classes 10 -o {output} --model resnext50_32x4d --with-csv-header --mean 0.485 0.456 0.406 --std 0.229 0.224 0.225 > {log} 2>&1"
+
+rule imagenette2_inference_summarize_best:
+    input: "results/{arch}/seed{seedval}/fold-{foldid}/after{nepochs}/best_topk_ids.csv"
+    output: "results/{arch}_seed{seedval}_fold-{foldid}_after{nepochs}_best_summary.csv"
+    script:
+        "scripts/metrics.py"
+
 rule imagenette2_vit_small_inference_last:
     input: "outputs/vit_small/seed{seedval}/{foldstem}/after80/last.pth.tar"
-    output: directory("results/vit_small/seed{seedval}/{foldstem}/after80/"),
-            "results/vit_small/seed{seedval}/{foldstem}/after80/topk_ids.csv"
-    log: "results/vit_small/seed{seedval}/{foldstem}/after80-topk_ids.log"
-    shell: "python timm-0.5.4-inference.py data/imagenette2-320-splits/{wildcards.foldstem}/val --checkpoint {input} --input-size 3 224 224 --num-classes 10 --output_dir {output[0]} --model vit_small_patch32_224 --with-csv-header --mean 0.485 0.456 0.406 --std 0.229 0.224 0.225 > {log} 2>&1"
+    output: "results/vit_small/seed{seedval}/{foldstem}/after80/last_topk_ids.csv"
+    log: "results/vit_small/seed{seedval}/{foldstem}/after80-last_topk_ids.log"
+    shell: "python timm-0.5.4-inference.py data/imagenette2-320-splits/{wildcards.foldstem}/val --checkpoint {input} --input-size 3 224 224 --num-classes 10 -o {output} --model vit_small_patch32_224 --with-csv-header --mean 0.485 0.456 0.406 --std 0.229 0.224 0.225 > {log} 2>&1"
 
 rule imagenette2_resnet50_inference_last:
     input: "outputs/resnet50/seed{seedval}/{foldstem}/after80/last.pth.tar"
-    output: directory("results/resnet50/seed{seedval}/{foldstem}/after80/"), "results/resnet50/seed{seedval}/{foldstem}/after80/topk_ids.csv"
-    log: "results/resnet50/seed{seedval}/{foldstem}/after80-topk_ids.log"
-    shell: "python timm-0.5.4-inference.py data/imagenette2-320-splits/{wildcards.foldstem}/val --checkpoint {input} --input-size 3 224 224 --num-classes 10 --output_dir {output[0]} --model resnet50 --with-csv-header --mean 0.485 0.456 0.406 --std 0.229 0.224 0.225 > {log} 2>&1"
+    output: "results/resnet50/seed{seedval}/{foldstem}/after80/last_topk_ids.csv"
+    log: "results/resnet50/seed{seedval}/{foldstem}/after80-last_topk_ids.log"
+    shell: "python timm-0.5.4-inference.py data/imagenette2-320-splits/{wildcards.foldstem}/val --checkpoint {input} --input-size 3 224 224 --num-classes 10 -o {output} --model resnet50 --with-csv-header --mean 0.485 0.456 0.406 --std 0.229 0.224 0.225 > {log} 2>&1"
 
 rule imagenette2_resnext50_inference_last:
     input: "outputs/resnext50/seed{seedval}/{foldstem}/after80/last.pth.tar"
-    output: directory("results/resnext50/seed{seedval}/{foldstem}/after80/"), "results/resnext50/seed{seedval}/{foldstem}/after80/topk_ids.csv"
-    log: "results/resnext50/seed{seedval}/{foldstem}/after80-topk_ids.log"
-    shell: "python timm-0.5.4-inference.py data/imagenette2-320-splits/{wildcards.foldstem}/val --checkpoint {input} --input-size 3 224 224 --num-classes 10 --output_dir {output[0]} --model resnext50_32x4d --with-csv-header --mean 0.485 0.456 0.406 --std 0.229 0.224 0.225 > {log} 2>&1"
+    output: "results/resnext50/seed{seedval}/{foldstem}/after80/last_topk_ids.csv"
+    log: "results/resnext50/seed{seedval}/{foldstem}/after80-last_topk_ids.log"
+    shell: "python timm-0.5.4-inference.py data/imagenette2-320-splits/{wildcards.foldstem}/val --checkpoint {input} --input-size 3 224 224 --num-classes 10 -o {output} --model resnext50_32x4d --with-csv-header --mean 0.485 0.456 0.406 --std 0.229 0.224 0.225 > {log} 2>&1"
 
-rule imagenette2_inference_summarize:
-    input: "results/{arch}/seed{seedval}/fold-{foldid}/after{nepochs}/topk_ids.csv"
-    output: "results/{arch}_seed{seedval}_fold-{foldid}_after{nepochs}_summary.csv"
+rule imagenette2_inference_summarize_last:
+    input: "results/{arch}/seed{seedval}/fold-{foldid}/after{nepochs}/last_topk_ids.csv"
+    output: "results/{arch}_seed{seedval}_fold-{foldid}_after{nepochs}_last_summary.csv"
     script:
         "scripts/metrics.py"
