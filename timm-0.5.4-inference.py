@@ -28,7 +28,7 @@ parser.add_argument(
     "--outputcsv",
     metavar="DIR",
     default="./topk_ids.csv",
-    help="path to output files",
+    help="path to output csv file",
 )
 parser.add_argument(
     "-m",
