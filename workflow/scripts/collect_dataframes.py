@@ -51,7 +51,10 @@ def obtain_metadata(filenames):
             mddict["fold"] = [int(parts[2].lower().lstrip("fold-"))]
         if "after" in parts[3].lower():
             mddict["epochs"] = [int(parts[3].lower().lstrip("after"))]
+        if "_" in parts[-1]:
+            mddict["srccategory"] = [parts[-1].split("_")]
         mddict["srcfile"] = [str(parts[-1]).lower()]
+
         md.append(mddict)
     return md
 

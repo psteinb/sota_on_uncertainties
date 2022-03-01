@@ -47,7 +47,7 @@ def test_metadata_from_filenames():
 
     assert len(obs) == 3
     assert isinstance(obs[0], dict)
-    assert len(list(obs[0].keys())) == 5
+    assert len(list(obs[0].keys())) == 6
     assert obs[0]["arch"] == ["vit_small"]
     assert obs[0]["seed"] == [42]
     assert obs[0]["fold"] == [3]
