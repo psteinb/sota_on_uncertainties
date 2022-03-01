@@ -1,16 +1,20 @@
+import sys
+from functools import partial
 from pathlib import Path
-from sklearn.metrics import accuracy_score, f1_score
+
 import pandas as pd
+from sklearn.metrics import accuracy_score, f1_score
 
 
-def compute_metric(tablefile, nrows=-1, metric_fn=accuracy_score):
+def compute_metric(tablefile, nrows=-1, metric_fn=accuracy_score, verbose=False):
 
     tfile = Path(tablefile)
     assert tfile.exists(), f"tablefile {tfile} does not exist"
     assert tfile.is_file()
 
     df = pd.read_csv(tfile)
-    print(df.describe())
+    if verbose:
+        print(df.describe())
 
     if nrows > 0:
         df = df.sample(n=nrows)
@@ -23,36 +27,46 @@ def compute_metric(tablefile, nrows=-1, metric_fn=accuracy_score):
     return value, len(y_true)
 
 
-def main(tablefile, output, metadata={}, write_header=False):
+def main(tablefile, output, metadata={}, write_header=False, verbose=False):
 
     ipath = Path(tablefile)
     keys = sorted(list(metadata.keys()))
     opath = Path(output)
 
     acc, nrows = compute_metric(ipath)
-    f1, _ = compute_metric(ipath, metric_fn=f1_score)
+    f1_score_ = partial(f1_score, average="weighted")
+    f1, _ = compute_metric(ipath, metric_fn=f1_score_)
 
     vals = [metadata[k] for k in keys]
-
+    lines = []
     if write_header:
-        header = ",".join(keys)
-        header += ","
+        header = ""
+        if keys:
+            header = ",".join(keys)
+            header += ","
         header += "val_accuracy"
         header += ","
         header += "val_f1score"
         header += ","
         header += "nsamples"
-        opath.write_text(header)
+        lines.append(header)
 
-    line = ",".join(fnamvals)
-    line += ","
+    line = ""
+    if keys:
+        line = ",".join(vals)
+        line += ","
     line += str(acc)
     line += ","
     line += str(f1)
     line += ","
     line += str(nrows)
-    opath.write_text(line)
-    print(line)
+    lines.append(line)
+
+    payload = "\n".join(lines)
+    opath.write_text(payload)
+
+    if verbose:
+        print(payload)
 
 
 if __name__ == "__main__":
