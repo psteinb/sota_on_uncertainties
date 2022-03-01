@@ -20,9 +20,14 @@ rule compare_seed42_accuracies:
     input: "results/imagenette2_{chkpt}_meanstd.csv"
     output: "results/figures/imagenette2_compare_seed{seedval}_{chkpt}_meanstd.png"
     script:
-        "scripts/plot_seed42_accuracies.py"
+        "scripts/plot_seed42_meanstd.py"
 
 rule mean_std:
+    input:
+        expand("results/imagenette2_{chkpt}_meanstd.csv",
+                  chkpt=["last","best"])
+
+rule mean_std_:
     input: "results/imagenette2_{chkpt}_metrics.csv"
     output: "results/imagenette2_{chkpt}_meanstd.csv"
     script:
