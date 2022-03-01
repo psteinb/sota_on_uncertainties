@@ -16,6 +16,30 @@ IMGNSTEMS=[
 "n03888257"
     ]
 
+rule compare_seed42_accuracies:
+    input: "results/imagenette2_{chkpt}_meanstd.csv"
+    output: "results/figures/imagenette2_compare_seed{seedval}_{chkpt}_meanstd.png"
+    script:
+        "scripts/plot_seed42_accuracies.py"
+
+rule mean_std:
+    input: "results/imagenette2_{chkpt}_metrics.csv"
+    output: "results/imagenette2_{chkpt}_meanstd.csv"
+    script:
+        "scripts/mean_std.py"
+
+rule seed42_histograms:
+    input: "results/figures/imagenette2_last_seed42_histo.png",
+           "results/figures/imagenette2_best_seed42_histo.png"
+
+rule plot_seed42_histograms:
+    input: "results/imagenette2_{chkpt}_metrics.csv"
+    output: "results/figures/imagenette2_{chkpt}_seed{seedval}_histo.png"
+    log: "results/figures/imagenette2_{chkpt}_seed{seedval}_histo.log"
+    script:
+        "scripts/plot_seed42_histo.py"
+
+## distilling the summary data
 
 rule imagenette2_summarized:
     input: "results/imagenette2_last_metrics.csv", "results/imagenette2_best_metrics.csv"
