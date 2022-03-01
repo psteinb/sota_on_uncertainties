@@ -66,3 +66,7 @@ def test_main():
     assert "arch" in rld.columns
     assert rld.arch.str.contains("resnet50").any()
     assert "val_accuracy" in rld.columns
+    assert "nsamples" in rld.columns
+    assert (rld.nsamples > 0).all()
+
+    outf.unlink()
