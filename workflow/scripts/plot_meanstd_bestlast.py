@@ -4,38 +4,50 @@ import pandas as pd
 from plotnine import *
 
 
-def main(datacsv, destination, filter_by_seed=42):
+def main(incsvfiles, outplot, filter_by_seed=42):
 
-    fulldf = pd.read_csv(datacsv)
+    dfs = []
+    for fname in incsvfiles:
+        cat = "best"
+        if "last" in fname:
+            cat = "last"
+        df = pd.read_csv(fname)
+        df["checkpoint"] = cat
+        dfs.append(df)
 
-    rmask1 = fulldf.srccategory.str.contains(filter_by_cat)
-    print(f"{filter_by_cat}? {len(fulldf)} -> {rmask1.sum()}")
+    fulldf = pd.concat(dfs)
+    fulldf["val_accuracy_mean_max"] = (
+        fulldf["val_accuracy_mean"] + fulldf["val_accuracy_std"] / 2.0
+    )
+    fulldf["val_accuracy_mean_min"] = (
+        fulldf["val_accuracy_mean"] - fulldf["val_accuracy_std"] / 2.0
+    )
 
-    rmask2 = fulldf["seed"] == int(filter_by_seed)
-    print(f"{filter_by_seed}? {len(fulldf)} -> {rmask2.sum()}")
-
-    mask = rmask1 & rmask2
-    print(f"total? {len(fulldf)} -> {mask.sum()} ({mask.shape})")
-
-    df = fulldf[mask]
-    assert (
-        len(df) > 0
-    ), f"filtering by {filter_by_cat} & {filter_by_seed} removed all rows"
-    df.arch_ = df.arch.astype("category")
-    print(df.head())
-
+    df = fulldf.copy()
+    if int(filter_by_seed) > -1:
+        mask = fulldf.seed == int(filter_by_seed)
+        df = fulldf[mask]
     print(f"reduced shape {fulldf.shape} to {df.shape}")
 
     plt = (
-        ggplot(df, aes(x="val_accuracy"))
-        + geom_histogram(bins=15)
-        + facet_wrap("arch", scales="free_y")
-        + xlab("accuracy")
+        ggplot(
+            df,
+            aes(x="arch", y="val_accuracy_mean", color="checkpoint"),
+        )
+        + geom_point(position=position_dodge(width=0.3))
+        + geom_errorbar(
+            aes(ymin="val_accuracy_mean_min", ymax="val_accuracy_mean_max"),
+            position=position_dodge(width=0.3),
+            width=0.2,
+        )
+        + xlab("architecture")
+        + ylab("accuracy")
         + theme_light()
         + theme(panel_spacing_x=0.3)
+        + coord_flip()
     )
 
-    ggsave(plt, str(destination), width=10, height=2)
+    ggsave(plt, str(outplot), width=6, height=4)
 
 
 if __name__ == "__main__":
@@ -44,9 +56,8 @@ if __name__ == "__main__":
     ):
         opath = Path(snakemake.output[0])
         value = main(
-            datacsv=Path(snakemake.input[0]),
-            destination=snakemake.output,
-            filter_by_cat=snakemake.wildcards.chkpt,
+            incsvfiles=snakemake.input,
+            outplot=snakemake.output,
             filter_by_seed=snakemake.wildcards.seedval,
         )
         sys.exit(value)
@@ -54,14 +65,12 @@ if __name__ == "__main__":
         assert (
             len(sys.argv) > 2
         ), f"usage: python plot_seed42_histo.py in.csv to.csv <last|best>"
-        inputs = sys.argv[1] if len(sys.argv) > 1 else None
-        output = sys.argv[2]
-        chkpt = sys.argv[3] if len(sys.argv) > 2 else "last"
-        seedval = sys.argv[4] if len(sys.argv) > 3 else 42
+        inputs = sys.argv[1:3] if len(sys.argv) > 1 else None
+        output = sys.argv[3]
+        seedval = sys.argv[4] if len(sys.argv) > 2 else 42
         value = main(
             datacsv=inputs,
-            destination=output,
-            filter_by_cat=chkpt,
+            outplot=output,
             filter_by_seed=seedval,
         )
 

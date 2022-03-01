@@ -16,9 +16,12 @@ IMGNSTEMS=[
 "n03888257"
     ]
 
+rule compare_seed42_accuracies_plot:
+    input: "results/figures/imagenette2_seed42_plot_meanstd_bestlast.png"
+
 rule compare_seed42_accuracies:
-    input: "results/imagenette2_{chkpt}_meanstd.csv"
-    output: "results/figures/imagenette2_compare_seed{seedval}_{chkpt}_meanstd.png"
+    input: "results/imagenette2_best_meanstd.csv", "results/imagenette2_last_meanstd.csv"
+    output: "results/figures/imagenette2_seed{seedval}_plot_meanstd_bestlast.png"
     script:
         "scripts/plot_meanstd_bestlast.py"
 
