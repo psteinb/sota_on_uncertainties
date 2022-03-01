@@ -4,18 +4,27 @@ import pandas as pd
 from sklearn.metrics import accuracy_score, f1_score
 
 
-def concat_frames(listoffilenames):
+def concat_frames(listoffilenames, listofmd=[]):
 
     frames = []
+    if not listofmd:
+        for idx, fname in enumerate(listoffilenames):
+            fname_ = Path(fname)
+            parts = list(fname_.parts)
+            partkeys = [f"part{cnt:02.0f}" for cnt in range(len(parts))]
+            metadict = {k: [v] for (k, v) in zip(partkeys, parts)}
+            listofmd.append(metadict)
 
-    for fname in listoffilenames:
+    for idx, fname in enumerate(listoffilenames):
         frame = pd.read_csv(fname)
+        metadict = listofmd[idx]
 
-        fname_ = Path(fname)
-        parts = list(fname_.parts)
+        metadf = pd.DataFrame.from_dict(metadict)
 
+        frame_nrows = len(frame)
+        frame = pd.concat([frame, metadf], axis=1)
         ## add filename parts
-
+        assert frame_nrows == len(frame)
         frames.append(frame)
 
     value = pd.concat(frames)
