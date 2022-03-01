@@ -1,0 +1,4 @@
+snakemake
+scikit-learn
+seaborn
+plotnine
