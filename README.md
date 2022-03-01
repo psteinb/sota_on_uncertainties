@@ -43,12 +43,23 @@ $ python -m venv <some-name>
 $ source <some-name>/bin/activate
 ```
 
-To prepare the environment and set up timm, we need to install our own pytorch:
+### Prepare for full training
+
+To prepare the environment and set up `timm` for complete training, we need to install our own pytorch:
 
 ```
 $ python -m pip torch==1.10.2+cu113 torchvision==0.11.3+cu113  -f https://download.pytorch.org/whl/cu113/torch_stable.html
+$ python -m pip install -r requirements-full.txt
+```
+
+### Prepare for reproducing the figures only
+
+**Note**: If you are not interested to rerun the machine learning traing, you are fine to go without `pytorch` and `timm` such as:
+
+```
 $ python -m pip install -r requirements.txt
 ```
+
 
 # Running the experiments
 
