@@ -1,10 +1,11 @@
 from pathlib import Path
 from pprint import pprint
+from tempfile import mkstemp
 
 import numpy as np
 import pandas as pd
 import pytest
-from scripts.collect_dataframes import concat_frames
+from scripts.collect_dataframes import concat_frames, main, obtain_metadata
 
 TESTFOLDER = Path(__file__).parent
 RESULTSPATH = Path(TESTFOLDER.absolute()) / "results"
@@ -34,7 +35,34 @@ def test_concat_csvs():
 def test_concat_csvs_with_factors():
 
     obs = concat_frames(RESULTSCSV)
-    pprint(list(RESULTSCSV[0].parts))
+    # pprint(list(RESULTSCSV[0].parts))
     obs.part08_ = obs.part08.astype("category")
-    pprint(obs.part08_.cat.categories.values)
+
     assert len(obs.part08_.cat.categories) == 3, f"{obs.part08_}"
+
+
+def test_metadata_from_filenames():
+
+    obs = obtain_metadata(RESULTSCSV)
+
+    assert len(obs) == 3
+    assert isinstance(obs[0], dict)
+    assert len(list(obs[0].keys())) == 5
+    assert obs[0]["arch"] == ["vit_small"]
+    assert obs[0]["seed"] == [42]
+    assert obs[0]["fold"] == [3]
+
+
+def test_main():
+
+    tempo = mkstemp(suffix=".csv")
+    outf = Path(tempo[-1])
+    assert not isinstance(outf, tuple)
+
+    obs = main(outf, RESULTSCSV, write_header=True, metadata_from_filenames=True)
+    assert obs == 0
+
+    rld = pd.read_csv(outf)
+    assert "arch" in rld.columns
+    assert rld.arch.str.contains("resnet50").any()
+    assert "val_accuracy" in rld.columns
