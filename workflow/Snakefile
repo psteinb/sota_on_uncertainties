@@ -17,6 +17,23 @@ IMGNSTEMS=[
     ]
 
 
+rule imagenette2_summarized:
+    input: "results/imagenette2_last_metrics.csv", "results/imagenette2_best_metrics.csv"
+
+rule imagenette2_metrics_summary:
+    input:
+        expand("results/{arch}/seed42/fold-{fid:02.0f}/after80/{{chkpt}}_metrics.csv",
+               arch="resnext50,resnet50,vit_small".split(','),
+               fid=range(KFOLDS)),
+        expand("results/{arch}/seed{seedval:02.0f}/fold-{fid:02.0f}/after80/{{chkpt}}_metrics.csv",
+               arch="resnext50,resnet50,vit_small".split(','),
+               seedval=range(1328,1328+NSEEDS),
+               fid=range(KFOLDS))
+        
+    output: "results/imagenette2_{chkpt}_metrics.csv"
+    script:
+        "scripts/collect_dataframes.py"
+
 rule metrics_from_topkids:
     input: "results/{arch}/seed{seedval}/{foldstem}/after80/{chkpttype}_topk_ids.csv"
     output: "results/{arch}/seed{seedval}/{foldstem}/after80/{chkpttype}_metrics.csv"

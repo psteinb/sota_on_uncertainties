@@ -52,7 +52,7 @@ def obtain_metadata(filenames):
         if "after" in parts[3].lower():
             mddict["epochs"] = [int(parts[3].lower().lstrip("after"))]
         if "_" in parts[-1]:
-            mddict["srccategory"] = [parts[-1].split("_")]
+            mddict["srccategory"] = [parts[-1].split("_")[0]]
         mddict["srcfile"] = [str(parts[-1]).lower()]
 
         md.append(mddict)
@@ -81,7 +81,12 @@ if __name__ == "__main__":
         hasattr(snakemake, "input") and hasattr(snakemake, "output")
     ):
         opath = Path(snakemake.output[0])
-        value = main(filenames=snakemake.input, output=opath, write_header=True)
+        value = main(
+            filenames=snakemake.input,
+            output=opath,
+            write_header=True,
+            metadata_from_filenames=True,
+        )
         sys.exit(value)
     else:
         assert (
