@@ -19,6 +19,7 @@ IMGNSTEMS=[
 rule all_figures:
     input: "results/figures/imagenette2_seed42_plot_meanstd_bestlast_across_folds.png",
            "results/figures/imagenette2_plot_meanstd_bestlast.png",
+           "results/figures/imagenette2_compare_meanstd_approx.png",
            "results/figures/imagenette2_last_seed42_histo.png",
            "results/figures/imagenette2_best_seed42_histo.png"
 
@@ -30,6 +31,23 @@ rule all_figures:
 #     output: "results/figures/imagenette2_noseed_plot_meanstd_bestlast.png"
 #     script:
 #         "scripts/boxplot_meanstd_bestlast.py"
+
+rule compare_meanstd_seed42_noseed_approx_accuracies:
+    input: "results/imagenette2_last_meanstd_across_folds_and_seeds.csv",
+           "results/imagenette2_last_meanstd_across_folds_for_seed_42.csv"
+
+    output: "results/figures/imagenette2_compare_meanstd_approx.png"
+    params:
+        show_legend = True,
+        show_legent_title = False
+    script:
+        "scripts/plot_meanstd_approx.py"
+
+rule filter_through_wildcard:
+    input: "results/imagenette2_last_meanstd_across_folds.csv"
+    output: "results/imagenette2_last_meanstd_across_folds_for_{filtercol}_{filterval}.csv"
+    script:
+        "scripts/filter_by_wildcard.py"
 
 rule compare_noseed_accuracies_plot:
     input: "results/figures/imagenette2_plot_meanstd_bestlast.png"
