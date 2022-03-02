@@ -4,7 +4,7 @@ import pandas as pd
 from plotnine import *
 
 
-def main(incsvfiles, outplot, filter_by_seed=42):
+def main(incsvfiles, outplot, filter_by_seed=42, legend=True):
 
     dfs = []
     for fname in incsvfiles:
@@ -27,8 +27,10 @@ def main(incsvfiles, outplot, filter_by_seed=42):
     if int(filter_by_seed) > -1:
         mask = fulldf.seed == int(filter_by_seed)
         df = fulldf[mask]
-    print(f"reduced shape {fulldf.shape} to {df.shape}")
-
+        print(
+            f"reduced shape {fulldf.shape} to {df.shape} (based on seed {filter_by_seed})"
+        )
+    print(f"using dataframe of shape {fulldf.shape} from {incsvfiles}")
     plt = (
         ggplot(
             df,
@@ -43,9 +45,24 @@ def main(incsvfiles, outplot, filter_by_seed=42):
         + xlab("architecture")
         + ylab("accuracy")
         + theme_light()
-        + theme(panel_spacing_x=0.3)
+        + theme(panel_spacing_x=0.3, legend_position="top")
+        + guides(
+            color=guide_legend(
+                nrow=1,
+                direction="horizontal",
+                label_position="right",
+                # title_vjust=0.5
+                # title_separation=0.3,
+                # label_separation=0.2,
+            )
+        )
         + coord_flip()
     )
+
+    if not legend:
+        print("removing legend")
+        # http://www.cookbook-r.com/Graphs/Legends_(ggplot2)/
+        plt += theme(legend_position="none")
 
     ggsave(plt, str(outplot), width=6, height=4)
 
@@ -55,10 +72,18 @@ if __name__ == "__main__":
         hasattr(snakemake, "input") and hasattr(snakemake, "output")
     ):
         opath = Path(snakemake.output[0])
+        filter_by_seed_ = -42  # default is to NOT filter by seed
+        if hasattr(snakemake, "wildcards") and hasattr(snakemake.wildcards, "seedval"):
+            filter_by_seed_ = snakemake.wildcards.seedval
+
+        use_legend = True
+        if hasattr(snakemake, "params") and hasattr(snakemake.params, "legend"):
+            use_legend = snakemake.params.use_legend
         value = main(
             incsvfiles=snakemake.input,
             outplot=snakemake.output,
-            filter_by_seed=snakemake.wildcards.seedval,
+            filter_by_seed=filter_by_seed_,
+            legend=use_legend,
         )
         sys.exit(value)
     else:

@@ -12,7 +12,7 @@ def main(incsv, outcsv, groupbycols=["arch", "seed"]):
     gdf = fulldf.groupby(groupbycols)  # should collapse to singular values
 
     print("aggregating mean/std val_accuracy based on col groups", groupbycols)
-    print("grouped df", gdf.size(), "compared to full df", fulldf.size())
+    print(f"grouped df {len(gdf)} compared to full df {len(fulldf)}")
     value_accuracy = (
         gdf["val_accuracy"]
         .agg(["mean", "std", "size"])
@@ -61,11 +61,9 @@ if __name__ == "__main__":
     ):
         opath = Path(snakemake.output[0])
         groupbycols = ["arch", "seed"]
-        if hasattr(snakemake, "parameters"):
-            groupbycols = snakemake.parameters.groupbycols
-            print(
-                "discovered parameters in snakemake: ", snakemake.parameters.groupbycols
-            )
+        if hasattr(snakemake, "params"):
+            groupbycols = snakemake.params.groupbycols
+            print("discovered params in snakemake: ", snakemake.params.groupbycols)
         value = main(
             incsv=Path(snakemake.input[0]),
             outcsv=snakemake.output,
