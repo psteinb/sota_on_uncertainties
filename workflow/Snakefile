@@ -16,23 +16,53 @@ IMGNSTEMS=[
 "n03888257"
     ]
 
+rule all_figures:
+    input: "results/figures/imagenette2_seed42_plot_meanstd_bestlast_across_folds.png",
+           "results/figures/imagenette2_last_seed42_histo.png",
+           "results/figures/imagenette2_best_seed42_histo.png"
+
+# rule compare_noseed_accuracies_plot:
+#     input: "results/figures/imagenette2_noseed_plot_meanstd_bestlast.png"
+
+# rule compare_noseed_accuracies:
+#     input: "results/imagenette2_best_meanstd.csv", "results/imagenette2_last_meanstd.csv"
+#     output: "results/figures/imagenette2_noseed_plot_meanstd_bestlast.png"
+#     script:
+#         "scripts/boxplot_meanstd_bestlast.py"
+
 rule compare_seed42_accuracies_plot:
-    input: "results/figures/imagenette2_seed42_plot_meanstd_bestlast.png"
+    input: "results/figures/imagenette2_seed42_plot_meanstd_bestlast_across_folds.png"
 
 rule compare_seed42_accuracies:
-    input: "results/imagenette2_best_meanstd.csv", "results/imagenette2_last_meanstd.csv"
-    output: "results/figures/imagenette2_seed{seedval}_plot_meanstd_bestlast.png"
+    input: "results/imagenette2_best_meanstd_across_folds.csv", "results/imagenette2_last_meanstd_across_folds.csv"
+    output: "results/figures/imagenette2_seed{seedval}_plot_meanstd_bestlast_across_folds.png"
     script:
         "scripts/plot_meanstd_bestlast.py"
 
+rule meanstd_across_folds_and_seeds_output:
+    input:
+        expand("results/imagenette2_{chkpt}_meanstd_across_folds_and_seeds.csv",
+               chkpt=["last","best"])
+
+rule mean_std_across_folds_and_seeds:
+    input: "results/imagenette2_{chkpt}_metrics.csv"
+    output: "results/imagenette2_{chkpt}_meanstd_across_folds_and_seeds.csv"
+    params:
+        groupbycols=["arch"]
+    script:
+        "scripts/mean_std_across_folds.py"
+
+
 rule meanstd_across_folds_output:
     input:
-        expand("results/imagenette2_{chkpt}_meanstd.csv",
+        expand("results/imagenette2_{chkpt}_meanstd_across_folds.csv",
                   chkpt=["last","best"])
 
 rule mean_std_across_folds:
     input: "results/imagenette2_{chkpt}_metrics.csv"
-    output: "results/imagenette2_{chkpt}_meanstd.csv"
+    output: "results/imagenette2_{chkpt}_meanstd_across_folds.csv"
+    params:
+        groupbycols=["arch","seed"]
     script:
         "scripts/mean_std_across_folds.py"
 
