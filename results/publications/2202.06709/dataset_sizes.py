@@ -22,10 +22,13 @@ def main(dname="cifar100"):
     dataset_train = DataLoader(dataset_train, shuffle=True)
     dataset_test = DataLoader(dataset_test)
 
+    print(dname)
     print(
         "Train: %s, Test: %s, Classes: %s"
         % (len(dataset_train.dataset), len(dataset_test.dataset), num_classes)
     )
+
+    return 0
 
 
 if __name__ == "__main__":
