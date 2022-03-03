@@ -23,14 +23,23 @@ rule all_figures:
            "results/figures/imagenette2_last_seed42_histo.png",
            "results/figures/imagenette2_best_seed42_histo.png"
 
-# rule compare_noseed_accuracies_plot:
-#     input: "results/figures/imagenette2_noseed_plot_meanstd_bestlast.png"
+### reproducing 2202.06709 ###
 
-# rule compare_noseed_accuracies:
-#     input: "results/imagenette2_best_meanstd.csv", "results/imagenette2_last_meanstd.csv"
-#     output: "results/figures/imagenette2_noseed_plot_meanstd_bestlast.png"
-#     script:
-#         "scripts/boxplot_meanstd_bestlast.py"
+rule reproduce_howvitwork_fig12a:
+    input: "results/publications/2202.06709/data/fig12a.csv"
+    output: "results/publications/2202.06709/fig12a.png"
+    params:
+        add_approximation = True
+    script:
+        "scripts/reproduce_plot_2202.06709_accuracy_msa.py"
+
+rule reproduce_howvitwork_fig12b:
+    input: "results/publications/2202.06709/data/fig12b.csv"
+    output: "results/publications/2202.06709/fig12b.png"
+    params:
+        add_approximation = True
+    script:
+        "scripts/reproduce_plot_2202.06709_robustness_accuracy.py"
 
 rule compare_meanstd_seed42_noseed_approx_accuracies:
     input: "results/imagenette2_last_meanstd_across_folds_and_seeds.csv",
