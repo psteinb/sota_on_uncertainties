@@ -6,7 +6,7 @@ from plotnine import *
 from scipy.stats import norm
 
 
-def main(incsvfiles, outplot, legend=True, legend_title=True):
+def main(incsvfiles, outplot, legend=True, legend_title=True, errorbars=True):
 
     dfs = []
     for fname in incsvfiles:
@@ -57,12 +57,16 @@ def main(incsvfiles, outplot, legend=True, legend_title=True):
         f"using dataframe of {df.shape} with these counts:\n{df.description.value_counts()}"
     )
     print(df.head())
+
+    maxy = df["val_accuracy_mean_max"].max()
+    miny = df["val_accuracy_mean_min"].min()
+
     plt = (
         ggplot(
             df,
             aes(x="arch", y="val_accuracy_mean", color="description", shape="estimate"),
         )
-        + geom_point(position=position_dodge(width=0.75))
+        + geom_point(position=position_dodge(width=0.75), size=2.5)
         + geom_errorbar(
             aes(ymin="val_accuracy_mean_min", ymax="val_accuracy_mean_max"),
             position=position_dodge(width=0.75),
@@ -70,6 +74,7 @@ def main(incsvfiles, outplot, legend=True, legend_title=True):
         )
         + xlab("architecture")
         + ylab("accuracy")
+        + ylim(0.98 * miny, 1.02 * maxy)
         + theme_light()
         + theme(legend_position="top")
         + guides(

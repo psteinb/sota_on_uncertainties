@@ -11,8 +11,10 @@ def main(datacsv, destination, filter_by_cat="last", filter_by_seed=42):
     rmask1 = fulldf.srccategory.str.contains(filter_by_cat)
     print(f"{filter_by_cat}? {len(fulldf)} -> {rmask1.sum()}")
 
-    rmask2 = fulldf["seed"] == int(filter_by_seed)
-    print(f"{filter_by_seed}? {len(fulldf)} -> {rmask2.sum()}")
+    rmask2 = rmask1
+    if int(filter_by_seed) >= 0:
+        rmask2 = fulldf["seed"] == int(filter_by_seed)
+        print(f"{filter_by_seed}? {len(fulldf)} -> {rmask2.sum()}")
 
     mask = rmask1 & rmask2
     print(f"total? {len(fulldf)} -> {mask.sum()} ({mask.shape})")
@@ -26,9 +28,11 @@ def main(datacsv, destination, filter_by_cat="last", filter_by_seed=42):
 
     print(f"reduced shape {fulldf.shape} to {df.shape}")
 
+    nbins = 15 if df.shape[0] <= 60 else 25
+
     plt = (
         ggplot(df, aes(x="val_accuracy"))
-        + geom_histogram(bins=15)
+        + geom_histogram(bins=nbins)
         + facet_wrap("arch", scales="free_y")
         + xlab("accuracy")
         + theme_light()
