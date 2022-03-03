@@ -64,7 +64,7 @@ def main(incsvfiles, outplot, filter_by_seed=42, legend=True):
         # http://www.cookbook-r.com/Graphs/Legends_(ggplot2)/
         plt += theme(legend_position="none")
 
-    ggsave(plt, str(outplot), width=6, height=4)
+    ggsave(plt, str(outplot), width=6, height=2)
 
 
 if __name__ == "__main__":
@@ -76,14 +76,14 @@ if __name__ == "__main__":
         if hasattr(snakemake, "wildcards") and hasattr(snakemake.wildcards, "seedval"):
             filter_by_seed_ = snakemake.wildcards.seedval
 
-        use_legend = True
-        if hasattr(snakemake, "params") and hasattr(snakemake.params, "legend"):
-            use_legend = snakemake.params.use_legend
+        show_legend = True
+        if hasattr(snakemake, "params") and hasattr(snakemake.params, "show_legend"):
+            show_legend = snakemake.params.show_legend
         value = main(
             incsvfiles=snakemake.input,
             outplot=snakemake.output,
             filter_by_seed=filter_by_seed_,
-            legend=use_legend,
+            legend=show_legend,
         )
         sys.exit(value)
     else:
