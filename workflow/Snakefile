@@ -22,22 +22,31 @@ rule all_figures:
            "results/figures/imagenette2_compare_meanstd_approx.png",
            "results/figures/imagenette2_last_seed42_histo.png",
            "results/figures/imagenette2_best_seed42_histo.png",
-           "results/publications/2202.06709/fig12b.png",
-           "results/publications/2202.06709/fig12a.png"
+           "results/figures/2202.06709/fig12b.png",
+           "results/figures/2202.06709/fig12a.png",
+           "results/figures/2202.06709/fig12a_noerror.png"
 
 ### reproducing 2202.06709 ###
 
 rule reproduce_howvitwork_fig12a:
     input: "results/publications/2202.06709/data/fig12a.csv"
-    output: "results/publications/2202.06709/fig12a.png"
+    output: "results/figures/2202.06709/fig12a.png"
     params:
         add_approximation = True
     script:
         "scripts/reproduce_plot_2202_06709_accuracy_msa.py"
 
+rule reproduce_howvitwork_fig12a_noerror:
+    input: "results/publications/2202.06709/data/fig12a.csv"
+    output: "results/figures/2202.06709/fig12a_noerror.png"
+    params:
+        add_approximation = False
+    script:
+        "scripts/reproduce_plot_2202_06709_accuracy_msa.py"
+
 rule reproduce_howvitwork_fig12b:
     input: "results/publications/2202.06709/data/fig12b.csv"
-    output: "results/publications/2202.06709/fig12b.png"
+    output: "results/figures/2202.06709/fig12b.png"
     params:
         add_approximation = True
     script:

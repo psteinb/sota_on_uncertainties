@@ -80,7 +80,9 @@ if __name__ == "__main__":
         opath = Path(snakemake.output[0])
 
         show_approx = True
-        if hasattr(snakemake, "params") and hasattr(snakemake.params, "show_approx"):
+        if hasattr(snakemake, "params") and hasattr(
+            snakemake.params, "add_approximation"
+        ):
             show_approx = snakemake.params.add_approximation
 
         value = main(
