@@ -19,8 +19,7 @@ def main(incsvfiles, outplot, legend=True, legend_title=True, errorbars=True):
         if df.columns.str.contains("description").sum() == 0:
             df["description"] = descr
 
-        df["description"] = df["description"].astype("category")
-        df["estimate"] = "folds"
+        df["estimate"] = "fold samples"
         df["estimate"] = df["estimate"].astype("category")
         dfs.append(df)
 
@@ -28,7 +27,7 @@ def main(incsvfiles, outplot, legend=True, legend_title=True, errorbars=True):
         dfapprox = df.copy()
         # dfapprox["description"] = len(df) * [str(df["description"][0] + ", binomial")]
         # dfapprox["description"] = dfapprox["description"].astype("category")
-        dfapprox["estimate"] = "binomial"
+        dfapprox["estimate"] = "approximated"
         dfapprox["estimate"] = dfapprox["estimate"].astype("category")
         #
         ## compute normal approximation based correction factor
@@ -44,7 +43,9 @@ def main(incsvfiles, outplot, legend=True, legend_title=True, errorbars=True):
         cdf_1sigma = norm.cdf([-1, 1])
         integral_1sigma = cdf_1sigma[-1] - cdf_1sigma[0]  # should be 1.!
 
-        z_std = norm.ppf(1 - ((1 - integral_1sigma) / 2.0))  # 1 sigma confidence interval
+        z_std = norm.ppf(
+            1 - ((1 - integral_1sigma) / 2.0)
+        )  # 1 sigma confidence interval
         print(
             f"68.2% confidence interval: integral_range = {integral_1sigma}, correction {z_std}"
         )
@@ -67,46 +68,66 @@ def main(incsvfiles, outplot, legend=True, legend_title=True, errorbars=True):
         fulldf["val_accuracy_mean"] - fulldf["val_accuracy_std"]
     )
 
+    mask42 = fulldf["description"].str.contains("42")
+    fulldf.loc[mask42, "description"] = "42"
+    fulldf.loc[~mask42, "description"] = "any"
+    fulldf["description"] = fulldf["description"].astype("category")
+
     df = fulldf.copy()
     print(
         f"using dataframe of {df.shape} with these counts:\n{df.description.value_counts()}"
     )
+
     print(df.head())
 
     maxy = df["val_accuracy_mean_max"].max()
     miny = df["val_accuracy_mean_min"].min()
 
+    minytick = np.round(np.floor(100.0 * miny) / 100.0, decimals=1)
+    maxytick = np.round(np.ceil(100.0 * maxy) / 100.0, decimals=1)
+    yticks = np.arange(minytick - 0.025, maxytick + 0.026, step=0.025)
+    print(f"y: {miny,maxy} -> {minytick,maxytick}")
+    print(yticks)
     plt = (
         ggplot(
             df,
             aes(x="arch", y="val_accuracy_mean", color="description", shape="estimate"),
         )
-        + geom_point(position=position_dodge(width=0.75), size=2.5)
+        + geom_point(position=position_dodge(width=0.75), size=3)
         + geom_errorbar(
             aes(ymin="val_accuracy_mean_min", ymax="val_accuracy_mean_max"),
             position=position_dodge(width=0.75),
             width=0.2,
         )
-        + xlab("architecture")
+        # + xlab("architecture")
+        + scale_x_discrete(name="")
         + ylab("accuracy")
-        + ylim(0.98 * miny, 1.02 * maxy)
+        # + ylim(0.98 * miny, 1.02 * maxy)
+        + scale_y_continuous(breaks=yticks)
+        + scale_color_discrete(breaks=["any", "42"])
+        + scale_shape_discrete(breaks=["fold samples", "approximated"])
         + theme_light()
-        + theme(legend_position="top")
-        + guides(
+        + theme(legend_key=element_rect(fill="None", colour="None"))
+        + guides(  # theme(legend_position="top", legend_direction="horizontal")
+            # nrow=1,
             color=guide_legend(
-                nrow=1,
-                direction="horizontal",
-                label_position="right",
-                title="none" if not legend_title else "description"
+                # nrow=1,
+                # direction="horizontal",
+                # label_position="right",
+                title="none"
+                if not legend_title
+                else "seed"
                 # title_vjust=0.5
                 # title_separation=0.3,
                 # label_separation=0.2,
             ),
             shape=guide_legend(
-                nrow=1,
-                direction="horizontal",
-                label_position="right",
-                title="none" if not legend_title else "estimate"
+                # nrow=1,
+                # direction="horizontal",
+                # label_position="right",
+                title="none"
+                if not legend_title
+                else "uncertainty from"
                 # title_vjust=0.5
                 # title_separation=0.3,
                 # label_separation=0.2,
@@ -120,7 +141,7 @@ def main(incsvfiles, outplot, legend=True, legend_title=True, errorbars=True):
         # http://www.cookbook-r.com/Graphs/Legends_(ggplot2)/
         plt += theme(legend_position="none")
 
-    ggsave(plt, str(outplot), width=6, height=2)
+    ggsave(plt, str(outplot), width=6, height=3)
 
 
 if __name__ == "__main__":
