@@ -31,10 +31,25 @@ def main(incsvfiles, outplot, legend=True, legend_title=True, errorbars=True):
         dfapprox["estimate"] = "binomial"
         dfapprox["estimate"] = dfapprox["estimate"].astype("category")
         #
-        z_std95 = norm.ppf(
-            1 - ((1 - 0.95) / 2.0)
-        )  # 95% confidence interval = 1.959, almost 2 sigma
-        z_std = norm.ppf(1 - ((1 - 0.68) / 2.0))  # 1 sigma confidence interval
+        ## compute normal approximation based correction factor
+        cdf_2sigma = norm.cdf([-2, 2])
+        integral_2sigma = cdf_2sigma[-1] - cdf_2sigma[0]
+
+        z_std_2sigma = norm.ppf(
+            1 - ((1 - integral_2sigma) / 2.0)
+        )  # 95% confidence interval = 1.959, equal 2 sigma
+        print(
+            f"95% confidence interval: integral_range = {integral_2sigma}, correction {z_std_2sigma}"
+        )
+        cdf_1sigma = norm.cdf([-1, 1])
+        integral_1sigma = cdf_1sigma[-1] - cdf_1sigma[0]  # should be 1.!
+
+        z_std = norm.ppf(1 - ((1 - integral_1sigma) / 2.0))  # 1 sigma confidence interval
+        print(
+            f"68.2% confidence interval: integral_range = {integral_1sigma}, correction {z_std}"
+        )
+
+        #
         inv_samples = 1.0 / df["nsamples"]
         dfapprox["val_accuracy_std"] = z_std * np.sqrt(
             inv_samples
