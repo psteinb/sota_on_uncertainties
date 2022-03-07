@@ -26,6 +26,10 @@ rule all_figures:
            "results/figures/imagenette2_best_seed42_histo.png",
            "results/figures/imagenette2_last_seed-42_histo.png",
            "results/figures/imagenette2_best_seed-42_histo.png",
+           "results/figures/imagenette2_last_seed42_qq.png",
+           "results/figures/imagenette2_best_seed42_qq.png",
+           "results/figures/imagenette2_last_seed-42_qq.png",
+           "results/figures/imagenette2_best_seed-42_qq.png",
            "results/figures/2202.06709/fig12b.png",
            "results/figures/2202.06709/fig12a.png",
            "results/figures/2202.06709/fig12a_noerror.png"
@@ -72,12 +76,6 @@ rule filter_through_wildcard:
     output: "results/imagenette2_last_meanstd_across_folds_for_{filtercol}_{filterval}.csv"
     script:
         "scripts/filter_by_wildcard.py"
-
-# rule compare_noseed_accuracies_plot:
-#     input: "results/figures/imagenette2_plot_meanstd_bestlast.png"
-
-# rule compare_seed42_accuracies_plot:
-#     input: "results/figures/imagenette2_seed42_plot_meanstd_bestlast_across_folds.png"
 
 rule compare_noseed_accuracies:
     input: "results/imagenette2_best_meanstd_across_folds_and_seeds.csv", "results/imagenette2_last_meanstd_across_folds_and_seeds.csv"
@@ -145,6 +143,13 @@ rule plot_seed42_histograms:
     log: "results/figures/imagenette2_{chkpt}_seed{seedval}_histo.log"
     script:
         "scripts/plot_seed42_histo.py"
+
+rule plot_seed42_qq:
+    input: "results/imagenette2_{chkpt}_metrics.csv"
+    output: "results/figures/imagenette2_{chkpt}_seed{seedval}_qq.png"
+    log: "results/figures/imagenette2_{chkpt}_seed{seedval}_qq.log"
+    script:
+        "scripts/plot_seed42_qq.py"
 
 ## distilling the summary data
 
