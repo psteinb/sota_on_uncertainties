@@ -39,7 +39,8 @@ def main(incsvfiles, outplot, filter_by_seed=42, legend=True, errorbars=True):
             aes(x="arch", y="val_accuracy_mean", color="checkpoint"),
         )
         + geom_point(position=position_dodge(width=0.3), size=2.5)
-        + xlab("architecture")
+        # + xlab("architecture")
+        + scale_x_discrete(name="")
         + ylab("accuracy")
         + ylim(0.98 * miny, 1.02 * maxy)
         + theme_light()
