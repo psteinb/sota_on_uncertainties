@@ -1,4 +1,4 @@
-# sota_on_uncertainties
+# SOTA with uncertainties
 
 trying to obtain uncertainties from training accuracies using [timm](https://github.com/rwightman/pytorch-image-models/).
 
