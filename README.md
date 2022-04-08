@@ -8,13 +8,22 @@ trying to obtain uncertainties from training accuracies using [timm](https://git
 
 We assume you have some form of GPU available including the required runtime environment available. If not, you can try to execute the workflow on CPU-only hardware. Note though that should you wish to train the networks, running on a CPU-only hardware can be very slow.
 
-Checking the python version and setting up a `venv`:
+Checking the python version:
 
 ```bash
-$ python --version
+python --version
+```
+should give:
+```
 3.8.5
-$ python -m venv <some-name>
-$ source <some-name>/bin/activate
+```
+Set up the `venv`:
+```bash
+python -m venv <some-name>
+```
+Source the `venv`:
+```bash
+source <some-name>/bin/activate
 ```
 
 ## instructions for Jusuf
@@ -22,20 +31,25 @@ $ source <some-name>/bin/activate
 For development:
 
 ```bash
-$ salloc -N 1 -p gpus -A <omitted> -t 01:00:00
-$ srun --cpu_bind=none --pty /bin/bash -i
+salloc -N 1 -p gpus -A <omitted> -t 01:00:00
+```
+
+```bash
+srun --cpu_bind=none --pty /bin/bash -i
 ```
 
 Setup the software environment:
 
 ```bash
-$ ml add Stages/2020 GCCcore/.10.3.0 CUDA/11.3 Python/3.8.5
+ml add Stages/2020 GCCcore/.10.3.0 CUDA/11.3 Python/3.8.5
 ```
 This will setup the environment to:
 
 ```bash
-$ ml
-
+ml
+```
+this produces:
+```
 Currently Loaded Modules:
   1) Stages/2020            (S)     9) ncurses/.6.2     (H)  17) util-linux/.2.36    (H)  25) libxml2/.2.9.10  (H)  33) libspatialindex/.1.9.3 (H)
   2) StdEnv/2020                   10) libreadline/.8.0 (H)  18) fontconfig/.2.13.92 (H)  26) libxslt/.1.1.34  (H)  34) NASM/.2.15.03          (H)
@@ -52,13 +66,22 @@ Currently Loaded Modules:
    H:             Hidden Module
 
 ```
-Checking the python version and setting up a `venv`:
+Checking the python version:
 
 ```bash
-$ python --version
+python --version
+```
+should give:
+```
 3.8.5
-$ python -m venv <some-name>
-$ source <some-name>/bin/activate
+```
+Set up the `venv`:
+```bash
+python -m venv <some-name>
+```
+Source the `venv`:
+```bash
+source <some-name>/bin/activate
 ```
 
 # Required Python Packages
@@ -68,15 +91,21 @@ $ source <some-name>/bin/activate
 To prepare the environment and set up `timm` for complete training, we need to install our own pytorch:
 
 ```bash
-$ python -m pip install torch==1.10.2+cu113 torchvision==0.11.3+cu113  -f https://download.pytorch.org/whl/cu113/torch_stable.html
-$ python -m pip install -r requirements-full.txt
+python -m pip install torch==1.10.2+cu113 torchvision==0.11.3+cu113  -f https://download.pytorch.org/whl/cu113/torch_stable.html
+```
+
+```bash
+python -m pip install -r requirements-full.txt
 ```
 
 Should you not have any GPU (or CUDA aware) hardware available, note that pytorch can also be installed cpu-only:
 
 ```bash
-$ python -m pip install torch==1.10.2+cpu torchvision==0.11.3+cpu torchaudio==0.10.2+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
-$ python -m pip install -r requirements-full.txt
+python -m pip install torch==1.10.2+cpu torchvision==0.11.3+cpu torchaudio==0.10.2+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
+```
+
+```bash
+python -m pip install -r requirements-full.txt
 ```
 
 **NB** We did not test our workflow in this scenario.
@@ -86,7 +115,7 @@ $ python -m pip install -r requirements-full.txt
 **Note**: If you are not interested to rerun the machine learning traing, you are fine to go without `pytorch` and `timm` such as:
 
 ```bash
-$ python -m pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 
@@ -97,9 +126,9 @@ $ python -m pip install -r requirements.txt
 Note, this repo involves 360 1h runs on a Nvidia V100. If you'd like to repeat the experiments, you need to download `imagenette2` the dataset as documented in the timmdocs:
 
 ```bash
-$ mkdir data
-$ wget https://s3.amazonaws.com/fast-ai-imageclas/imagenette2-320.tgz
-$ tar xf imagenette2-320.tgz
+mkdir data
+wget https://s3.amazonaws.com/fast-ai-imageclas/imagenette2-320.tgz
+tar xf imagenette2-320.tgz
 ```
 
 ## training all models
@@ -107,8 +136,12 @@ $ tar xf imagenette2-320.tgz
 To run the 360 experiments sequentially, do
 
 ```bash
-$ cd /root/to/repo
-$ snakemake -j1 imagenette2_train
+cd /root/to/repo
+```
+to switch the current working directory. Then run the training:
+
+```bash
+snakemake -j1 imagenette2_train
 ```
 
 Please use the issue tracker to report any shortcomings.
@@ -118,7 +151,7 @@ Please use the issue tracker to report any shortcomings.
 This workflow setup is prepared with a [slurm](https://slurm.schedm.com) cluster in mind. JUSUF at JSC is managed by [slurm](https://slurm.schedm.com). On Jusuf, you can run all model trainings as
 
 ```bash
-$ snakemake -j40 -p --profile config/slurm/jusuf imagenette2_train
+snakemake -j40 -p --profile config/slurm/jusuf imagenette2_train
 ```
 
 Note, this will submit `360` jobs in total, but only run `40` jobs at a time. You can only invoke this command from the `venv` described above. If you'd like to run this on another cluster, adjust `config/slurm/jusuf/config.yaml` to your needs (see [slurm profile](https://github.com/Snakemake-Profiles/slurm) for the api documentation of `config.yaml`).
@@ -128,11 +161,11 @@ Note, this will submit `360` jobs in total, but only run `40` jobs at a time. Yo
 The default workflow target is to run inference on the validation datasets created. You need at least one GPU for this and all `last.pth.tar` model files generated by `timm` in a folder structure which the workflow expects. In other words:
 
 ```bash
-$ snakemake -j80 -p --profile config/slurm/jusuf imagenette2_inference_last
+snakemake -j80 -p --profile config/slurm/jusuf imagenette2_inference_last
 ```
 
 # Viewing the execution graph
 
 ```bash
-$ snakemake -j1 -F --dag results/figures/imagenette2_compare_meanstd_approx.png| dot -Tsvg > ~/imagenette2_compare_meanstd_approx_dag.svg
+snakemake -j1 -F --dag results/figures/imagenette2_compare_meanstd_approx.png| dot -Tsvg > ~/imagenette2_compare_meanstd_approx_dag.svg
 ```
