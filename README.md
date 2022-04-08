@@ -64,7 +64,7 @@ $ source <some-name>/bin/activate
 To prepare the environment and set up `timm` for complete training, we need to install our own pytorch:
 
 ```
-$ python -m pip torch==1.10.2+cu113 torchvision==0.11.3+cu113  -f https://download.pytorch.org/whl/cu113/torch_stable.html
+$ python -m pip install torch==1.10.2+cu113 torchvision==0.11.3+cu113  -f https://download.pytorch.org/whl/cu113/torch_stable.html
 $ python -m pip install -r requirements-full.txt
 ```
 
