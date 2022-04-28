@@ -66,17 +66,19 @@ def main(inpath, outputdir=".", kfolds=20, seed=42):
     tablefiles = write_tables(inpath, outputdir, kfolds, seed)
 
     if len(tablefiles) == kfolds:
-        return 0
+        return 0  # success
     else:
         return 1
 
 
 if __name__ == "__main__":
+    value = 1
+
     if "snakemake" in globals() and (
         hasattr(snakemake, "input") and hasattr(snakemake, "output")
     ):
         opath = Path(snakemake.output[0])
-        # ifclause is workaround for snakemake
+        # this if-clause is a workaround for snakemake
         if ".table" == opath.suffix:
             value = main(snakemake.input[0], opath.parent)
         else:
