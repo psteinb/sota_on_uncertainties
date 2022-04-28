@@ -2,7 +2,9 @@ from pathlib import Path
 
 KFOLDS=20
 NSEEDS=5
-DATAROOT = Path("/p/scratch/atmlaml/steinbach1/sota_on_uncertainties/data/")
+DATAROOT = Path("./data/") # Path("/p/scratch/atmlaml/steinbach1/sota_on_uncertainties/data/")
+print(f"Using {DATAROOT.absolute()} as DATAROOT")
+
 IMGNSTEMS=[
 "n01440764",
 "n02102040",
@@ -236,12 +238,10 @@ rule imagenette_all:
     input: expand(DATAROOT / "imagenette2-320-all/{dir}",dir=IMGNSTEMS)
 
 rule imagenette_unpack:
-    input: "imagenette2-320.tgz"
-    output: rootdir=directory(DATAROOT / "data"),
-            tocheck1=DATAROOT / "imagenette2-320/val/n02979186/n02979186_7492.JPEG",
-            tocheck2=DATAROOT / "imagenette2-320/noisy_imagenette.csv"
-    shell: "cd {output.rootdir} && tar xf ../{input}"
-
+    input: (DATAROOT / "imagenette2-320.tgz").absolute()
+    output: tocheck1=DATAROOT / "imagenette2-320" / "val/n02979186/n02979186_7492.JPEG",
+            tocheck2=DATAROOT / "imagenette2-320" / "noisy_imagenette.csv"
+    shell: "cd {DATAROOT} && tar xf {input}"
 
 rule imagenette_combine:
     input: DATAROOT / "{dataset}" /"val"/"{classdir}",
@@ -360,3 +360,16 @@ rule imagenette2_resnext50_inference_last:
 #     output: "results/{arch}_seed{seedval}_fold-{foldid}_after{nepochs}_last_summary.csv"
 #     script:
 #         "scripts/metrics.py"
+
+# rule prepare_data:
+#     output: directory(DATAROOT)
+#     message: "creating {DATAROOT} as it doesn't exist"
+#     shell: "mkdir {DATAROOT}"
+
+rule download_imagenette:
+    input: DATAROOT
+    message: "downloading imagenette from https://s3.amazonaws.com/fast-ai-imageclas/imagenette2-320.tgz"
+    output: DATAROOT / "imagenette2-320.tgz"
+    shell: """
+    wget -O {DATAROOT}/imagenette2-320.tgz https://s3.amazonaws.com/fast-ai-imageclas/imagenette2-320.tgz
+    """
