@@ -263,6 +263,8 @@ rule fill_fold:
     output: directory(DATAROOT / "{dataset}-splits"/"fold-{foldid}"),
             directory(DATAROOT / "{dataset}-splits"/"fold-{foldid}/train"),
             directory(DATAROOT / "{dataset}-splits"/"fold-{foldid}/val")
+    wildcard_constraints:
+        foldid="\d+"
     script:
         "scripts/linkin.py"
 
