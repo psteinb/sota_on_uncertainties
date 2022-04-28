@@ -128,7 +128,7 @@ python -m pip install -r requirements.txt
 
 ## Getting the data
 
-Note, this repo involves 360 1h runs on a Nvidia V100. If you'd like to repeat the experiments, you need to download `imagenette2` the dataset as documented in the timmdocs:
+Note, this repo involves 360 1h runs on a Nvidia V100. If you'd like to repeat the experiments, you need to download `imagenette2` the dataset as documented in the timmdocs. Our workflow can do that automatically. Just in case you want to look around first, here is how to obtain it:
 
 ```bash
 mkdir data
