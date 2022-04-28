@@ -127,6 +127,7 @@ Note, this repo involves 360 1h runs on a Nvidia V100. If you'd like to repeat t
 
 ```bash
 mkdir data
+cd data
 wget https://s3.amazonaws.com/fast-ai-imageclas/imagenette2-320.tgz
 tar xf imagenette2-320.tgz
 ```
