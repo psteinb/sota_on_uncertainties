@@ -84,6 +84,13 @@ Source the `venv`:
 source <some-name>/bin/activate
 ```
 
+For the sake of good practice, update `pip` whenever possible:
+
+```bash
+python -m pip install -U pip
+```
+
+
 # Required Python Packages
 
 ### Prepare for full training
@@ -94,15 +101,13 @@ To prepare the environment and set up `timm` for complete training, we need to i
 python -m pip install torch==1.10.2+cu113 torchvision==0.11.3+cu113  -f https://download.pytorch.org/whl/cu113/torch_stable.html
 ```
 
-```bash
-python -m pip install -r requirements-full.txt
-```
-
 Should you not have any GPU (or CUDA aware) hardware available, note that pytorch can also be installed cpu-only:
 
 ```bash
 python -m pip install torch==1.10.2+cpu torchvision==0.11.3+cpu torchaudio==0.10.2+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
 ```
+
+Whether with GPU support or not, you need to install the full software stack:
 
 ```bash
 python -m pip install -r requirements-full.txt
