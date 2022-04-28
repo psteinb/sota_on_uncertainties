@@ -246,11 +246,19 @@ rule imagenette_unpack:
 rule imagenette_combine:
     input: DATAROOT / "{dataset}" /"val"/"{classdir}",
            DATAROOT / "{dataset}" /"train"/"{classdir}"
-    output: directory(DATAROOT / "{dataset}-all/{classdir}")
+    output: directory(DATAROOT / "{dataset}-all/{classdir}/")# ,
+    #         touch(DATAROOT / "{dataset}-all/{classdir}/../folder.ready")
+    # wildcard_constraints:
+    #     classdir="^(?!folder).*"
     shell: "mkdir -p {output[0]} && cp -vur {input[0]}/*JPEG {input[1]}/*JPEG {output[0]}"
 
+rule imagenette_trainval_merged:
+    input: expand(DATAROOT/"imagenette2-320-all"/"{cdir}",cdir=IMGNSTEMS)
+    output: DATAROOT / "imagenette2-320-all" / "folder.ready"
+    shell: "find {DATAROOT}/imagenette2-320-all -name '*JPEG' | wc -l > {output[0]}"
+
 rule create_tables:
-    input: DATAROOT / "{dataset}-all"
+    input: DATAROOT / "{dataset}-all" / "folder.ready"
     output: expand(DATAROOT / "{{dataset}}-splits"/"fold-{fid:02.0f}.table", fid=range(KFOLDS))
     script:
         "scripts/kfold.py"
