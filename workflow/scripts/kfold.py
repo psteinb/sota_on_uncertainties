@@ -6,12 +6,13 @@ import numpy as np
 
 
 def X_y(path, suffix="JPEG"):
-    """generate X and y from walking a path, the path is expected
-    to contain images that end of suffix, each parent folder of a file is
+    """generate X and y from walking a <path_>, the path is expected
+    to contain images that end on <suffix>, each parent folder of a file is
     considered a unique class identifyer
     """
 
-    candidatefiles = sorted(list(Path(path).glob("**/*" + suffix)))
+    path_ = Path(path).absolute()
+    candidatefiles = sorted(list(path_.glob("**/*" + suffix)))
 
     parents = [f.parent.parts[-1] for f in candidatefiles]
 
@@ -63,6 +64,9 @@ def write_tables(inpath, outputdir=".", kfolds=20, seed=42):
 
 def main(inpath, outputdir=".", kfolds=20, seed=42):
 
+    assert Path(outputdir).is_dir()
+    assert Path(inpath).is_dir()
+
     tablefiles = write_tables(inpath, outputdir, kfolds, seed)
 
     if len(tablefiles) == kfolds:
@@ -78,11 +82,13 @@ if __name__ == "__main__":
         hasattr(snakemake, "input") and hasattr(snakemake, "output")
     ):
         opath = Path(snakemake.output[0])
+        ipath_ = Path(snakemake.input[0])
+        ipath = ipath_ if not ipath_.is_file() else ipath_.parent
         # this if-clause is a workaround for snakemake
         if ".table" == opath.suffix:
-            value = main(snakemake.input[0], opath.parent)
+            value = main(ipath, opath.parent)
         else:
-            value = main(snakemake.input[0], opath)
+            value = main(ipath, opath)
         sys.exit(value)
     else:
         inpath = sys.argv[1] if len(sys.argv) > 1 else None
