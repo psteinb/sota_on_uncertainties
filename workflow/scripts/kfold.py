@@ -11,7 +11,9 @@ def X_y(path, suffix="JPEG"):
     considered a unique class identifyer
     """
 
-    path_ = Path(path).absolute()
+    path_ = Path(
+        path
+    ).resolve()  # to prevent having symlinks through slow filesystems in the src path
     candidatefiles = sorted(list(path_.glob("**/*" + suffix)))
 
     parents = [f.parent.parts[-1] for f in candidatefiles]
