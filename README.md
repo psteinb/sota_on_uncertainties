@@ -154,7 +154,16 @@ Please use the issue tracker to report any shortcomings.
 
 ## parallel execution on a cluster
 
-This workflow setup is prepared with a [slurm](https://slurm.schedm.com) cluster in mind. JUSUF at JSC is managed by [slurm](https://slurm.schedm.com). On Jusuf, you can run all model trainings as
+This workflow setup is prepared with a [slurm](https://slurm.schedm.com) cluster in mind. JUSUF at JSC is managed by [slurm](https://slurm.schedm.com). 
+
+Before you do anything, the destination folders for the slurm logs have to be created.
+
+```bash
+cd /path/to/repo
+mkdir -p outputs/slurm/logs/
+```
+
+On Jusuf, you can run all model trainings as
 
 ```bash
 snakemake -j40 -p --profile config/slurm/jusuf imagenette2_train
