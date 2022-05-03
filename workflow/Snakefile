@@ -240,17 +240,16 @@ rule imagenette_all:
 
 rule imagenette_unpack:
     input: (DATAROOT / "imagenette2-320.tgz").absolute()
-    output: tocheck1=DATAROOT / "imagenette2-320" / "val/n02979186/n02979186_7492.JPEG",
-            tocheck2=DATAROOT / "imagenette2-320" / "noisy_imagenette.csv"
+    output: directory(DATAROOT / "imagenette2-320" / "train"),
+            directory(DATAROOT / "imagenette2-320" / "val"),
+            expand(DATAROOT / "imagenette2-320/train/{dir}",dir=IMGNSTEMS),
+            expand(DATAROOT / "imagenette2-320/val/{dir}",dir=IMGNSTEMS)
     shell: "cd {DATAROOT} && tar xf {input}"
 
 rule imagenette_combine:
     input: DATAROOT / "{dataset}" /"val"/"{classdir}",
            DATAROOT / "{dataset}" /"train"/"{classdir}"
-    output: directory(DATAROOT / "{dataset}-all/{classdir}/")# ,
-    #         touch(DATAROOT / "{dataset}-all/{classdir}/../folder.ready")
-    # wildcard_constraints:
-    #     classdir="^(?!folder).*"
+    output: directory(DATAROOT / "{dataset}-all/{classdir}/")
     shell: "mkdir -p {output[0]} && cp -vur {input[0]}/*JPEG {input[1]}/*JPEG {output[0]}"
 
 rule imagenette_trainval_merged:
