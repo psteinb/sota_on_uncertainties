@@ -1,9 +1,10 @@
 from pathlib import Path
+from sys import stderr
 
 KFOLDS=20
 NSEEDS=5
 DATAROOT = Path("./data/") # Path("/p/scratch/atmlaml/steinbach1/sota_on_uncertainties/data/")
-print(f"Using {DATAROOT.absolute()} as DATAROOT")
+print(f"Using {DATAROOT.absolute()} as DATAROOT", file=stderr)
 
 IMGNSTEMS=[
 "n01440764",
