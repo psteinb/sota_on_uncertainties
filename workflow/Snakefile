@@ -196,37 +196,6 @@ rule imagenette2_metrics:
 
 ################################# Everything Below requires a GPU #################################
 
-rule imagenette2_inference:
-    input:
-        expand("results/{arch}/seed42/fold-{fid:02.0f}/after80/{chkpt}_topk_ids.csv",
-               arch="resnext50,resnet50,vit_small".split(','),
-               fid=range(KFOLDS),
-               chkpt=["last","best"]),
-        expand("results/{arch}/seed{seedval:02.0f}/fold-{fid:02.0f}/after80/{chkpt}_topk_ids.csv",
-               arch="resnext50,resnet50,vit_small".split(','),
-               seedval=range(1328,1328+NSEEDS),
-               fid=range(KFOLDS),
-               chkpt=["last","best"])
-
-rule imagenette2_inference_last:
-    input:
-        expand("results/{arch}/seed42/fold-{fid:02.0f}/after80/last_topk_ids.csv",
-               arch="resnext50,resnet50,vit_small".split(','),
-               fid=range(KFOLDS)),
-        expand("results/{arch}/seed{seedval:02.0f}/fold-{fid:02.0f}/after80/last_topk_ids.csv",
-               arch="resnext50,resnet50,vit_small".split(','),
-               seedval=range(1328,1328+NSEEDS),
-               fid=range(KFOLDS))
-
-rule imagenette2_inference_best:
-    input:
-        expand("results/{arch}/seed42/fold-{fid:02.0f}/after80/best_topk_ids.csv",
-               arch="resnext50,resnet50,vit_small".split(','),
-               fid=range(KFOLDS)),
-        expand("results/{arch}/seed{seedval:02.0f}/fold-{fid:02.0f}/after80/best_topk_ids.csv",
-               arch="resnext50,resnet50,vit_small".split(','),
-               seedval=range(1328,1328+NSEEDS),
-               fid=range(KFOLDS))
 
 rule imagenette_folds:
     input:
@@ -242,8 +211,8 @@ rule imagenette_unpack:
     input: (DATAROOT / "imagenette2-320.tgz").absolute()
     output: directory(DATAROOT / "imagenette2-320" / "train"),
             directory(DATAROOT / "imagenette2-320" / "val"),
-            expand(DATAROOT / "imagenette2-320/train/{dir}",dir=IMGNSTEMS),
-            expand(DATAROOT / "imagenette2-320/val/{dir}",dir=IMGNSTEMS)
+            directory(expand(DATAROOT / "imagenette2-320/train/{dir}",dir=IMGNSTEMS)),
+            directory(expand(DATAROOT / "imagenette2-320/val/{dir}",dir=IMGNSTEMS))
     shell: "cd {DATAROOT} && tar xf {input}"
 
 rule imagenette_combine:
@@ -275,6 +244,49 @@ rule fill_fold:
         foldid="\d+"
     script:
         "scripts/linkin.py"
+
+
+################################# Everything Below requires a GPU #################################
+
+rule download_imagenette:
+    #input: DATAROOT
+    message: "downloading imagenette from https://s3.amazonaws.com/fast-ai-imageclas/imagenette2-320.tgz"
+    output: (DATAROOT / "imagenette2-320.tgz").absolute()
+    shell: """
+    wget -O {DATAROOT}/imagenette2-320.tgz https://s3.amazonaws.com/fast-ai-imageclas/imagenette2-320.tgz
+    """
+
+rule imagenette2_inference:
+    input:
+        expand("results/{arch}/seed42/fold-{fid:02.0f}/after80/{chkpt}_topk_ids.csv",
+               arch="resnext50,resnet50,vit_small".split(','),
+               fid=range(KFOLDS),
+               chkpt=["last","best"]),
+        expand("results/{arch}/seed{seedval:02.0f}/fold-{fid:02.0f}/after80/{chkpt}_topk_ids.csv",
+               arch="resnext50,resnet50,vit_small".split(','),
+               seedval=range(1328,1328+NSEEDS),
+               fid=range(KFOLDS),
+               chkpt=["last","best"])
+
+rule imagenette2_inference_last:
+    input:
+        expand("results/{arch}/seed42/fold-{fid:02.0f}/after80/last_topk_ids.csv",
+               arch="resnext50,resnet50,vit_small".split(','),
+               fid=range(KFOLDS)),
+        expand("results/{arch}/seed{seedval:02.0f}/fold-{fid:02.0f}/after80/last_topk_ids.csv",
+               arch="resnext50,resnet50,vit_small".split(','),
+               seedval=range(1328,1328+NSEEDS),
+               fid=range(KFOLDS))
+
+rule imagenette2_inference_best:
+    input:
+        expand("results/{arch}/seed42/fold-{fid:02.0f}/after80/best_topk_ids.csv",
+               arch="resnext50,resnet50,vit_small".split(','),
+               fid=range(KFOLDS)),
+        expand("results/{arch}/seed{seedval:02.0f}/fold-{fid:02.0f}/after80/best_topk_ids.csv",
+               arch="resnext50,resnet50,vit_small".split(','),
+               seedval=range(1328,1328+NSEEDS),
+               fid=range(KFOLDS))
 
 rule imagenette2_resnet50_default:
     input: DATAROOT/"imagenette2-320-splits"/"{foldstem}"
@@ -375,11 +387,3 @@ rule imagenette2_resnext50_inference_last:
 #     output: directory(DATAROOT)
 #     message: "creating {DATAROOT} as it doesn't exist"
 #     shell: "mkdir {DATAROOT}"
-
-rule download_imagenette:
-    input: DATAROOT
-    message: "downloading imagenette from https://s3.amazonaws.com/fast-ai-imageclas/imagenette2-320.tgz"
-    output: DATAROOT / "imagenette2-320.tgz"
-    shell: """
-    wget -O {DATAROOT}/imagenette2-320.tgz https://s3.amazonaws.com/fast-ai-imageclas/imagenette2-320.tgz
-    """
