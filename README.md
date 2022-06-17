@@ -1,6 +1,6 @@
 # SOTA with uncertainties
 
-trying to obtain uncertainties from training accuracies using [timm](https://github.com/rwightman/pytorch-image-models/).
+Obtain uncertainties from training accuracies using [timm](https://github.com/rwightman/pytorch-image-models/) using ensembles from an automated workflow. More details are available in [our paper](https://ml-eval.github.io/accepted-papers/#11).
 
 # Required Environment
 
@@ -177,4 +177,20 @@ snakemake -j80 -p --profile config/slurm/jusuf imagenette2_inference_last
 
 ```bash
 snakemake -j1 -F --dag results/figures/imagenette2_compare_meanstd_approx.png| dot -Tsvg > ~/imagenette2_compare_meanstd_approx_dag.svg
+```
+
+# Citation
+
+```
+@article{https://doi.org/10.48550/arxiv.2204.05173,
+  doi = {10.48550/ARXIV.2204.05173},
+  url = {https://ml-eval.github.io/accepted-papers/#11},
+  author = {Steinbach, Peter and Gernhardt, Felicita and Tanveer, Mahnoor and Schmerler, Steve and Starke, Sebastian},
+  keywords = {Machine Learning (cs.LG), Computer Vision and Pattern Recognition (cs.CV), FOS: Computer and information sciences, FOS: Computer and information sciences},
+  title = {Machine Learning State-of-the-Art with Uncertainties},
+  publisher = {arXiv},
+  year = {2022},
+  copyright = {Creative Commons Attribution 4.0 International},
+  note = {ICLR22, ML Evaluation Standards workshop}
+}
 ```
